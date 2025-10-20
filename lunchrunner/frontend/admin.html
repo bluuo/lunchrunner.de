@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Lunchrunner Admin</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header>
+      <h1>Produktverwaltung</h1>
+      <p class="untertitel">Pflege Produkte und Optionen in Echtzeit.</p>
+    </header>
+
+    <main>
+      <section class="formular-bereich">
+        <h2>Admin-Authentifizierung</h2>
+        <form id="adminTokenFormular">
+          <div class="form-gruppe">
+            <label for="adminTokenEingabe">Admin-Token</label>
+            <input type="password" id="adminTokenEingabe" required />
+          </div>
+          <button type="submit" class="primaer">Token speichern</button>
+        </form>
+      </section>
+
+      <section class="liste-bereich">
+        <div class="titel-mit-aktionen">
+          <h2>Produkte</h2>
+          <button id="neuesProduktButton" class="sekundaer">Neues Produkt</button>
+        </div>
+        <div id="produkteListe" class="produkte-liste"></div>
+      </section>
+
+      <section class="formular-bereich" id="produktEditorBereich" hidden>
+        <h2 id="produktEditorTitel">Produkt bearbeiten</h2>
+        <form id="produktFormular">
+          <input type="hidden" id="produktId" />
+          <div class="form-gruppe">
+            <label for="produktName">Produktname</label>
+            <input type="text" id="produktName" required />
+          </div>
+          <div class="form-gruppe">
+            <label for="produktBeschreibung">Beschreibung</label>
+            <textarea id="produktBeschreibung" rows="3"></textarea>
+          </div>
+          <div class="form-gruppe">
+            <label for="produktPreis">Basispreis (Brutto)</label>
+            <input type="number" step="0.01" min="0" id="produktPreis" required />
+          </div>
+          <div class="form-gruppe">
+            <label for="produktKategorie">Kategorie</label>
+            <input type="text" id="produktKategorie" />
+          </div>
+          <div class="form-gruppe">
+            <label for="produktAktiv">Aktiv</label>
+            <select id="produktAktiv">
+              <option value="true">Ja</option>
+              <option value="false">Nein</option>
+            </select>
+          </div>
+          <div class="form-gruppe">
+            <label for="optionenDefinition">Optionen-Definition (JSON)</label>
+            <textarea id="optionenDefinition" rows="10" required></textarea>
+            <small>
+              Struktur siehe README. Bitte gültiges JSON eintragen.
+            </small>
+          </div>
+          <div class="formular-aktionen">
+            <button type="submit" class="primaer">Speichern</button>
+            <button type="button" id="abbrechenButton" class="sekundaer">Abbrechen</button>
+          </div>
+        </form>
+      </section>
+    </main>
+
+    <footer>
+      <p>
+        Zurück zum <a href="index.html">Bestellboard</a>
+      </p>
+    </footer>
+
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js" integrity="sha384-9vlh++/YCA7k+yvHhJPwPM8XcgTcF8KrlR2vgMOgc8ZJ28cN06ytgZPlmJxWOhqS" crossorigin="anonymous"></script>
+    <script type="module" src="util.js"></script>
+    <script type="module" src="admin.js"></script>
+  </body>
+</html>

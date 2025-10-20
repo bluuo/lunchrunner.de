@@ -1,0 +1,39 @@
+version: "3.9"
+
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: lunchrunner
+      POSTGRES_USER: lunchrunner
+      POSTGRES_PASSWORD: supergeheimespasswort
+    volumes:
+      - db_daten:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U lunchrunner"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build:
+      context: ./backend
+    environment:
+      NODE_ENV: development
+      PORT: 3000
+      DATABASE_URL: postgres://lunchrunner:supergeheimespasswort@db:5432/lunchrunner
+      CORS_ORIGIN: http://localhost:3000
+      ADMIN_TOKEN: supergeheimes-token
+    ports:
+      - "3000:3000"
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - ./backend:/usr/src/app
+      - /usr/src/app/node_modules
+    command: npm run dev
+
+volumes:
+  db_daten:

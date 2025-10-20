@@ -1,0 +1,210 @@
+:root {
+  color-scheme: light;
+  font-family: "Inter", "Segoe UI", sans-serif;
+  background-color: #f4f6fb;
+  color: #1f2933;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+header,
+footer {
+  background: linear-gradient(135deg, #2351ff, #1c8dff);
+  color: white;
+  padding: 2rem 1.5rem;
+  text-align: center;
+}
+
+header h1,
+footer p {
+  margin: 0;
+}
+
+header .untertitel,
+footer a {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+main {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 1.5rem;
+  padding: 2rem 1.5rem 3rem;
+}
+
+.formular-bereich,
+.liste-bereich {
+  background: white;
+  border-radius: 16px;
+  padding: 1.5rem;
+  box-shadow: 0 18px 40px -24px rgba(35, 81, 255, 0.45);
+}
+
+.formular-bereich h2,
+.liste-bereich h2 {
+  margin-top: 0;
+}
+
+.form-gruppe {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 1rem;
+}
+
+.form-gruppe label {
+  font-weight: 600;
+  margin-bottom: 0.4rem;
+}
+
+.form-gruppe input,
+.form-gruppe select,
+.form-gruppe textarea {
+  padding: 0.65rem 0.75rem;
+  border-radius: 10px;
+  border: 1px solid #cbd2d9;
+  font-size: 1rem;
+  transition: border-color 0.2s ease;
+}
+
+.form-gruppe input:focus,
+.form-gruppe select:focus,
+.form-gruppe textarea:focus {
+  outline: none;
+  border-color: #1c8dff;
+  box-shadow: 0 0 0 3px rgba(28, 141, 255, 0.2);
+}
+
+.primaer,
+.sekundaer {
+  border: none;
+  border-radius: 999px;
+  padding: 0.75rem 1.5rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.primaer {
+  background: linear-gradient(135deg, #2351ff, #1c8dff);
+  color: white;
+  box-shadow: 0 16px 32px -20px rgba(35, 81, 255, 0.8);
+}
+
+.sekundaer {
+  background: rgba(28, 141, 255, 0.1);
+  color: #1c8dff;
+}
+
+.primaer:hover,
+.sekundaer:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 20px 35px -24px rgba(28, 141, 255, 0.75);
+}
+
+.optionen-container {
+  display: grid;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  padding: 1rem;
+  border: 1px dashed #cbd2d9;
+  border-radius: 14px;
+  background: #f8fafc;
+}
+
+.optionen-gruppe h3 {
+  margin: 0 0 0.5rem;
+  font-size: 1.05rem;
+}
+
+.optionen-werte label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.4rem;
+}
+
+.bestellungen-liste {
+  display: grid;
+  gap: 1rem;
+}
+
+.bestellung-karte {
+  border: 1px solid #e4e7eb;
+  border-radius: 14px;
+  padding: 1rem;
+  background: #fbfdff;
+  box-shadow: 0 18px 32px -28px rgba(15, 23, 42, 0.7);
+}
+
+.bestellung-kopf {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.bestellung-positionen {
+  margin: 0;
+  padding-left: 1.2rem;
+}
+
+.bestellung-positionen li {
+  margin-bottom: 0.5rem;
+}
+
+.bestellung-aktionen {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.produkte-liste {
+  display: grid;
+  gap: 1rem;
+}
+
+.produkt-karte {
+  border: 1px solid #e4e7eb;
+  border-radius: 14px;
+  padding: 1rem;
+  background: #fbfdff;
+}
+
+.produkt-karte header {
+  background: none;
+  color: inherit;
+  padding: 0;
+  margin-bottom: 0.5rem;
+}
+
+.produkt-karte header h3 {
+  margin: 0;
+}
+
+.formular-aktionen {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.titel-mit-aktionen {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+@media (max-width: 768px) {
+  main {
+    grid-template-columns: 1fr;
+  }
+}

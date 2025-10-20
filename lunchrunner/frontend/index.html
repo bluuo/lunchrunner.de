@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Lunchrunner Bestellboard</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header>
+      <h1>Lunchrunner Bestellboard</h1>
+      <p class="untertitel">Gemeinsam bestellen, Preise immer im Blick.</p>
+    </header>
+
+    <main>
+      <section class="formular-bereich">
+        <h2>Neue Position hinzufügen</h2>
+        <form id="bestellFormular">
+          <div class="form-gruppe">
+            <label for="nutzerName">Dein Name</label>
+            <input type="text" id="nutzerName" name="nutzerName" required />
+          </div>
+          <div class="form-gruppe">
+            <label for="produktAuswahl">Produkt</label>
+            <select id="produktAuswahl" name="produktAuswahl" required></select>
+          </div>
+          <div class="form-gruppe">
+            <label for="produktMenge">Menge</label>
+            <input type="number" id="produktMenge" name="produktMenge" min="1" value="1" required />
+          </div>
+          <div id="optionenContainer" class="optionen-container"></div>
+          <button type="submit" class="primaer">Position speichern</button>
+        </form>
+      </section>
+
+      <section class="liste-bereich">
+        <h2>Aktuelle Bestellungen</h2>
+        <div id="bestellungenListe" class="bestellungen-liste"></div>
+      </section>
+    </main>
+
+    <footer>
+      <p>
+        Lunchrunner &bull; Realtime Bestellübersicht. Admin? →
+        <a href="admin.html">Admin-Bereich</a>
+      </p>
+    </footer>
+
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js" integrity="sha384-9vlh++/YCA7k+yvHhJPwPM8XcgTcF8KrlR2vgMOgc8ZJ28cN06ytgZPlmJxWOhqS" crossorigin="anonymous"></script>
+    <script type="module" src="util.js"></script>
+    <script type="module" src="app.js"></script>
+  </body>
+</html>
