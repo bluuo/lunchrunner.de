@@ -2,19 +2,21 @@
 set -euo pipefail
 
 APP_DIR="$(pwd)"
+BACKEND_DIR="$APP_DIR/backend"
 
-if [ -d "$APP_DIR/backend" ]; then
-  echo "[Plesk Deploy] Installing backend dependencies"
-  npm install --production --prefix "$APP_DIR/backend"
-  echo "[Plesk Deploy] Running database migrations"
-  npm run migrate --prefix "$APP_DIR/backend"
-  if command -v pm2 >/dev/null 2>&1; then
-    echo "[Plesk Deploy] Restarting application via pm2"
-    pm2 restart lunchrunner || pm2 start "$APP_DIR/backend/src/server.js" --name lunchrunner --interpreter node
-  else
-    echo "[Plesk Deploy] Please restart the Plesk Node app process"
-  fi
-else
+if [ ! -d "$BACKEND_DIR" ]; then
   echo "[Plesk Deploy] Backend directory not found" >&2
   exit 1
+fi
+
+echo "[Plesk Deploy] Building Spring Boot backend"
+mvn -f "$BACKEND_DIR/pom.xml" -B -DskipTests package
+
+echo "[Plesk Deploy] Build complete. Flyway migrations will run on application startup."
+
+if command -v systemctl >/dev/null 2>&1 && systemctl list-units --type=service | grep -q "lunchrunner"; then
+  echo "[Plesk Deploy] Restarting systemd service lunchrunner"
+  systemctl restart lunchrunner
+else
+  echo "[Plesk Deploy] Please restart the Java application via Plesk or your process manager."
 fi

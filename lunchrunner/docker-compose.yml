@@ -18,30 +18,31 @@ services:
 
   app:
     build:
-      context: ./backend
+      context: .
+      dockerfile: backend/Dockerfile
     environment:
-      NODE_ENV: development
       PORT: 3000
-      DATABASE_URL: postgres://lunchrunner:supersecretpassword@db:5432/lunchrunner
-      CORS_ORIGIN: http://localhost:3000
-      CLERK_PUBLISHABLE_KEY: pk_test_your_publishable_key
-      CLERK_SECRET_KEY: sk_test_your_secret_key
-      CLERK_ISSUER_URL: https://your-app.clerk.accounts.dev
-      CLERK_JWT_AUDIENCE: http://localhost:3000
-      CLERK_JWT_TEMPLATE: backend
-      CLERK_API_BASE_URL: https://api.clerk.com
-      CLERK_ADMIN_ROLE: admin
-      CLERK_SIGN_IN_URL: https://your-app.clerk.accounts.dev/sign-in
-      CLERK_SIGN_UP_URL: https://your-app.clerk.accounts.dev/sign-up
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/lunchrunner
+      SPRING_DATASOURCE_USERNAME: lunchrunner
+      SPRING_DATASOURCE_PASSWORD: supersecretpassword
+      LUNCHRUNNER_CORS_ORIGIN: http://localhost:3000
+      LUNCHRUNNER_CLERK_PUBLISHABLE_KEY: pk_test_your_publishable_key
+      LUNCHRUNNER_CLERK_SECRET_KEY: sk_test_your_secret_key
+      LUNCHRUNNER_CLERK_ISSUER_URL: https://your-app.clerk.accounts.dev
+      LUNCHRUNNER_CLERK_JWT_AUDIENCE: http://localhost:3000
+      LUNCHRUNNER_CLERK_JWT_TEMPLATE: backend
+      LUNCHRUNNER_CLERK_API_BASE_URL: https://api.clerk.com
+      LUNCHRUNNER_CLERK_ADMIN_ROLE: admin
+      LUNCHRUNNER_CLERK_SIGN_IN_URL: https://your-app.clerk.accounts.dev/sign-in
+      LUNCHRUNNER_CLERK_SIGN_UP_URL: https://your-app.clerk.accounts.dev/sign-up
+      LUNCHRUNNER_SOCKET_IO_PORT: 3300
     ports:
       - "3000:3000"
+      - "3300:3300"
     depends_on:
       db:
         condition: service_healthy
-    volumes:
-      - ./backend:/usr/src/app
-      - /usr/src/app/node_modules
-    command: npm run dev
+    restart: unless-stopped
 
 volumes:
   db_data:

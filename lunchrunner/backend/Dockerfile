@@ -1,15 +1,13 @@
 # syntax=docker/dockerfile:1
-FROM node:18-slim AS base
-WORKDIR /usr/src/app
-ENV NODE_ENV=production
+FROM maven:3.9.6-eclipse-temurin-21 AS build
+WORKDIR /workspace
+COPY backend/pom.xml backend/pom.xml
+COPY backend/src backend/src
+COPY frontend frontend
+RUN mvn -f backend/pom.xml -B -DskipTests package
 
-RUN addgroup --system --gid 1001 nodejs && adduser --system --uid 1001 --ingroup nodejs nodeapp
-
-COPY package.json package-lock.json* ./
-RUN npm ci --only=production && npm cache clean --force
-
-COPY src ./src
-
-USER nodeapp
-EXPOSE 3000
-CMD ["node", "src/server.js"]
+FROM eclipse-temurin:21-jre
+WORKDIR /app
+COPY --from=build /workspace/backend/target/backend-1.0.0.jar app.jar
+EXPOSE 3000 3300
+ENTRYPOINT ["java","-jar","/app/app.jar"]

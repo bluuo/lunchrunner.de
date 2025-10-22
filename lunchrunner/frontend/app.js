@@ -1,7 +1,24 @@
 import { createOrReadDeviceId, formatPriceAmount, validateOptions } from "./util.js";
 
 const apiBaseUrl = window.location.origin.replace(/\/$/, "") + "/api";
-const socket = io("/realtime", { path: "/socket.io" });
+let socket;
+
+async function createRealtimeConnection() {
+  try {
+    const response = await fetch(`${apiBaseUrl}/auth/realtime-config`);
+    if (!response.ok) {
+      throw new Error("Failed to load realtime configuration");
+    }
+    const config = await response.json();
+    const baseUrl = (config.url || window.location.origin).replace(/\/$/, "");
+    const namespace = (config.namespace || "/realtime").replace(/\/$/, "");
+    const path = config.path || "/socket.io";
+    return io(`${baseUrl}${namespace}`, { path });
+  } catch (error) {
+    console.warn("Falling back to default realtime socket configuration", error);
+    return io("/realtime", { path: "/socket.io" });
+  }
+}
 const deviceId = createOrReadDeviceId();
 
 const productSelectElement = document.querySelector("#productSelect");
@@ -275,18 +292,23 @@ orderFormElement.addEventListener("submit", async (event) => {
 
 productSelectElement.addEventListener("change", () => buildOptionFields());
 
-socket.on("productsUpdated", (data) => {
-  productsCache = data;
-  updateProductSelect();
-  renderOrders();
-});
+async function initializeApplication() {
+  try {
+    await Promise.all([loadProducts(), loadOrders()]);
+    socket = await createRealtimeConnection();
+    socket.on("productsUpdated", (data) => {
+      productsCache = data;
+      updateProductSelect();
+      renderOrders();
+    });
+    socket.on("ordersUpdated", (data) => {
+      ordersCache = data;
+      renderOrders();
+    });
+  } catch (error) {
+    console.error(error);
+    alert("Failed to initialize application");
+  }
+}
 
-socket.on("ordersUpdated", (data) => {
-  ordersCache = data;
-  renderOrders();
-});
-
-Promise.all([loadProducts(), loadOrders()]).catch((error) => {
-  console.error(error);
-  alert("Failed to load initial data");
-});
+initializeApplication();

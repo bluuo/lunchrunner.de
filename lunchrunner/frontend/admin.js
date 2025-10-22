@@ -1,7 +1,24 @@
 import { formatPriceAmount, validateOptions } from "./util.js";
 
 const apiBaseUrl = window.location.origin.replace(/\/$/, "") + "/api";
-const socket = io("/realtime", { path: "/socket.io" });
+let socket;
+
+async function createRealtimeConnection() {
+  try {
+    const response = await fetch(`${apiBaseUrl}/auth/realtime-config`);
+    if (!response.ok) {
+      throw new Error("Failed to load realtime configuration");
+    }
+    const config = await response.json();
+    const baseUrl = (config.url || window.location.origin).replace(/\/$/, "");
+    const namespace = (config.namespace || "/realtime").replace(/\/$/, "");
+    const path = config.path || "/socket.io";
+    return io(`${baseUrl}${namespace}`, { path });
+  } catch (error) {
+    console.warn("Falling back to default realtime configuration", error);
+    return io("/realtime", { path: "/socket.io" });
+  }
+}
 
 const authenticationFeedbackElement = document.querySelector("#authenticationFeedback");
 const signedOutActionsElement = document.querySelector("#signedOutActions");
@@ -379,6 +396,9 @@ async function bootstrapAuthentication() {
 }
 
 function initializeSocketListeners() {
+  if (!socket) {
+    return;
+  }
   socket.on("productsUpdated", () => {
     loadProducts();
   });
@@ -455,6 +475,7 @@ window.addEventListener("beforeunload", () => {
 (async function init() {
   setAuthenticationFeedback("Loading authentication...", "info");
   await bootstrapAuthentication();
+  socket = await createRealtimeConnection();
   initializeSocketListeners();
   await loadProducts();
 })();
