@@ -1,6 +1,5 @@
 import { Router } from "express";
 import { z } from "zod";
-import { requireAdminToken } from "../middleware/deviceOwnership.js";
 import { writeRateLimit } from "../security/rateLimit.js";
 import { validateOptionsDefinition } from "../services/optionsValidation.js";
 
@@ -14,10 +13,14 @@ const productSchema = z.object({
   optionsDefinition: z.any(),
 });
 
-export function adminRouter({ productRepository, config }) {
+export function adminRouter({ productRepository, requireAdmin }) {
   const router = Router();
 
-  router.use(requireAdminToken(config));
+  if (typeof requireAdmin !== "function") {
+    throw new Error("Admin router requires an authentication middleware");
+  }
+
+  router.use(requireAdmin);
 
   router.get("/products", async (req, res, next) => {
     try {

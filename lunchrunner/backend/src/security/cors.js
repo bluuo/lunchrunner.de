@@ -26,4 +26,7 @@ export const corsMiddleware = cors({
     callback(new Error("CORS request not allowed"));
   },
   credentials: false,
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization", "x-device-id"],
+  optionsSuccessStatus: 204,
 });

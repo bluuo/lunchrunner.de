@@ -24,7 +24,15 @@ services:
       PORT: 3000
       DATABASE_URL: postgres://lunchrunner:supersecretpassword@db:5432/lunchrunner
       CORS_ORIGIN: http://localhost:3000
-      ADMIN_TOKEN: supersecret-token
+      CLERK_PUBLISHABLE_KEY: pk_test_your_publishable_key
+      CLERK_SECRET_KEY: sk_test_your_secret_key
+      CLERK_ISSUER_URL: https://your-app.clerk.accounts.dev
+      CLERK_JWT_AUDIENCE: http://localhost:3000
+      CLERK_JWT_TEMPLATE: backend
+      CLERK_API_BASE_URL: https://api.clerk.com
+      CLERK_ADMIN_ROLE: admin
+      CLERK_SIGN_IN_URL: https://your-app.clerk.accounts.dev/sign-in
+      CLERK_SIGN_UP_URL: https://your-app.clerk.accounts.dev/sign-up
     ports:
       - "3000:3000"
     depends_on:

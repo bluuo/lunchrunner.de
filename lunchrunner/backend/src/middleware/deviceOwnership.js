@@ -9,14 +9,3 @@ export function requireDeviceId(req, res, next) {
   req.deviceId = deviceId;
   next();
 }
-
-export function requireAdminToken(config) {
-  return function (req, res, next) {
-    const token = req.headers["x-admin-token"];
-    if (!token || token !== config.adminToken) {
-      res.status(401).json({ message: "Admin token is invalid" });
-      return;
-    }
-    next();
-  };
-}

@@ -13,21 +13,24 @@
     </header>
 
     <main>
-      <section class="form-section">
-        <h2>Admin authentication</h2>
-        <form id="adminTokenForm">
-          <div class="form-group">
-            <label for="adminTokenInput">Admin token</label>
-            <input type="password" id="adminTokenInput" required />
-          </div>
-          <button type="submit" class="primary">Save token</button>
-        </form>
+      <section class="form-section" id="authenticationSection">
+        <h2>Administrator login</h2>
+        <p id="authenticationFeedback" class="info-text">Loading authentication...</p>
+        <div id="signedOutActions" class="auth-panel">
+          <div id="clerkSignIn" class="clerk-container"></div>
+        </div>
+        <div id="signedInActions" class="auth-panel" hidden>
+          <p>
+            Signed in as <span id="adminUserName"></span>
+          </p>
+          <div id="clerkUserButton" class="clerk-container"></div>
+        </div>
       </section>
 
       <section class="list-section">
         <div class="title-with-actions">
           <h2>Products</h2>
-          <button id="newProductButton" class="secondary">New product</button>
+          <button id="newProductButton" class="secondary" disabled>New product</button>
         </div>
         <div id="productsList" class="products-list"></div>
       </section>

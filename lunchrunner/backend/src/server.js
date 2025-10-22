@@ -16,6 +16,8 @@ import { errorHandler } from "./middleware/errorHandler.js";
 import { createProductRepository } from "./db/queries/products.js";
 import { createOrderRepository } from "./db/queries/orders.js";
 import { initializeSocket } from "./socket/realtime.js";
+import { createRequireClerkAdmin } from "./middleware/clerkAdmin.js";
+import { authRouter } from "./routes/auth.js";
 
 const knex = knexModule({
   client: "pg",
@@ -24,6 +26,7 @@ const knex = knexModule({
 
 const productRepository = createProductRepository(knex);
 const orderRepository = createOrderRepository(knex);
+const requireAdmin = createRequireClerkAdmin(config);
 
 const app = express();
 const server = http.createServer(app);
@@ -44,7 +47,8 @@ app.use(express.static(frontendPath));
 app.use("/api/health", healthRouter());
 app.use("/api/products", productsRouter({ productRepository }));
 app.use("/api/orders", ordersRouter({ productRepository, orderRepository }));
-app.use("/api/admin", adminRouter({ productRepository, config }));
+app.use("/api/auth", authRouter({ config }));
+app.use("/api/admin", adminRouter({ productRepository, requireAdmin }));
 
 app.use((req, res, next) => {
   if (req.method === "GET" && !req.path.startsWith("/api")) {

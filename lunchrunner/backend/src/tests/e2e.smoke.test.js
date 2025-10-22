@@ -91,7 +91,14 @@ describe("E2E Smoke", () => {
   let app;
   let productRepository;
   let orderRepository;
-  const config = { adminToken: "test-token" };
+  const requireAdmin = (req, res, next) => {
+    const header = req.headers.authorization;
+    if (header === "Bearer test-token") {
+      next();
+      return;
+    }
+    res.status(401).json({ message: "Unauthorized" });
+  };
 
   beforeEach(() => {
     productRepository = new InMemoryProductRepository();
@@ -99,14 +106,14 @@ describe("E2E Smoke", () => {
     app = express();
     app.use(bodyParser.json());
     app.use("/api/products", productsRouter({ productRepository }));
-    app.use("/api/admin", adminRouter({ productRepository, config }));
+    app.use("/api/admin", adminRouter({ productRepository, requireAdmin }));
     app.use("/api/orders", ordersRouter({ productRepository, orderRepository }));
   });
 
   it("creates a product and order and calculates prices", async () => {
     const productResponse = await request(app)
       .post("/api/admin/products")
-      .set("x-admin-token", "test-token")
+      .set("Authorization", "Bearer test-token")
       .send({
         productName: "Test Dish",
         productDescription: "Tasty",

@@ -38,14 +38,6 @@ export function createOrReadDeviceId() {
   return deviceId;
 }
 
-export function readAdminToken() {
-  return localStorage.getItem("lunchrunner-admin-token") ?? "";
-}
-
-export function storeAdminToken(token) {
-  localStorage.setItem("lunchrunner-admin-token", token);
-}
-
 export function validateOptions(definition, selection) {
   if (!definition || typeof definition !== "object" || !Array.isArray(definition.groups)) {
     return false;

@@ -8,7 +8,7 @@ Lunchrunner is a fully self-hosted ordering board with real-time updates. The pr
 - **Backend** (`backend/`): Express server exposing a REST API, Socket.IO gateway, Knex migrations, and PostgreSQL access.
 - **Realtime**: Socket.IO namespace `/realtime` emits `productsUpdated` and `ordersUpdated` events.
 - **Database**: PostgreSQL with migration (`2025-01-init-schema.sql`) and seed script.
-- **Security**: Helmet, rate limiting, domain restricted CORS, admin token, and device ownership enforcement.
+- **Security**: Helmet, rate limiting, domain restricted CORS, Clerk-managed admin login, and device ownership enforcement.
 - **CI/CD**: Plesk post-deploy script and example GitHub workflow.
 
 ## Local quick start
@@ -59,7 +59,7 @@ lunchrunner/
    - Node version: 18.x
   - Document root: project folder `lunchrunner`
    - Application startup file: `backend/src/server.js`
-   - Set environment variables (`PORT`, `DATABASE_URL`, `CORS_ORIGIN`, `ADMIN_TOKEN`).
+   - Set environment variables (`PORT`, `DATABASE_URL`, `CORS_ORIGIN`, Clerk keys from `.env.example`).
 4. **Post-deployment script**: Register `plesk-post-deploy.sh` in the Git settings. The script runs `npm ci`, executes migrations, and optionally restarts a PM2 process.
 5. **Reverse proxy**: If needed, use `infra/nginx-example.conf` as a template for Nginx/Apache (proxy to port 3000 with WebSocket support).
 6. **Database**: Configure a PostgreSQL service (via Plesk or an external instance). Provide credentials via `.env` or Plesk environment variables.
@@ -81,7 +81,7 @@ Services:
 - `db`: PostgreSQL 16 with a persistent `db_data` volume.
 - `app`: Backend in development mode (mounts the local source tree). For production, prefer a dedicated build (for example `docker compose -f docker-compose.yml --profile production up`).
 
-Adjust `CORS_ORIGIN` and `ADMIN_TOKEN` in the compose file to reflect your domain.
+Adjust `CORS_ORIGIN` and the Clerk environment variables in the compose file to reflect your domain and Clerk project.
 
 ## GitHub Actions (optional)
 
@@ -97,8 +97,26 @@ Adjust `CORS_ORIGIN` and `ADMIN_TOKEN` in the compose file to reflect your domai
 - **CORS**: Defaults to `https://lunchrunner.de`. Update `CORS_ORIGIN` for your domain.
 - **Rate limiting**: Write operations are limited to 100 requests per 10 minutes.
 - **Helmet**: Provides secure HTTP headers including a Content-Security-Policy.
-- **Admin token**: Configure in `backend/.env` and enter it in the admin UI (stored in LocalStorage).
+- **Clerk authentication**: Admin routes verify Clerk session tokens and require the configured admin role metadata.
 - **Device ownership**: The frontend generates a `deviceId` (UUID) and sends it as `x-device-id`. The backend restricts modifications to matching devices.
+
+## Clerk authentication
+
+The admin interface uses [Clerk](https://clerk.com/) for sign-in, token management, and user interface components.
+
+1. **Create a Clerk application** and note the publishable and secret keys. For EU or development environments adjust `CLERK_API_BASE_URL` accordingly (default is `https://api.clerk.com`).
+2. **Configure environment variables** (see `backend/.env.example`). Required values:
+   - `CLERK_PUBLISHABLE_KEY`
+   - `CLERK_SECRET_KEY`
+   - `CLERK_ISSUER_URL` (for example `https://<your-app>.clerk.accounts.dev`)
+   - `CLERK_JWT_AUDIENCE` (matches the audience configured for the session token template)
+   - `CLERK_JWT_TEMPLATE` (name of the JWT template used in the admin frontend)
+   - Optional: `CLERK_SIGN_IN_URL`, `CLERK_SIGN_UP_URL`, `CLERK_ADMIN_ROLE`, and `CLERK_API_BASE_URL`
+3. **Create a JWT template in Clerk** (for example named `backend`) with the desired audience and issuer. The admin UI requests this template when calling protected APIs.
+4. **Grant administrator rights** to users by setting their Clerk `public_metadata.roles` (or `private_metadata.roles`) to include the value configured in `CLERK_ADMIN_ROLE` (defaults to `admin`). Setting `public_metadata.isAdmin = true` is also accepted.
+5. When signed in, the admin frontend acquires a session token and sends it as `Authorization: Bearer <token>` to `/api/admin/*` routes. The backend verifies the token signature against Clerk JWKS and confirms administrator privileges via metadata or the Clerk API.
+
+If Clerk initialization fails the admin UI displays a warning banner; verify that the publishable key and issuer URL are accessible from the browser.
 
 ## Database model
 
