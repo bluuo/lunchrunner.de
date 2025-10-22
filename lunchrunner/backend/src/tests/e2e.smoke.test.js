@@ -3,152 +3,152 @@ import { randomUUID } from "node:crypto";
 import bodyParser from "body-parser";
 import request from "supertest";
 import { describe, expect, it, beforeEach } from "vitest";
-import { produkteRouter } from "../routes/produkte.js";
+import { productsRouter } from "../routes/products.js";
 import { adminRouter } from "../routes/admin.js";
-import { bestellungenRouter } from "../routes/bestellungen.js";
+import { ordersRouter } from "../routes/orders.js";
 
-class InMemoryProduktRepository {
+class InMemoryProductRepository {
   constructor() {
-    this.produkte = [];
+    this.products = [];
   }
 
-  async findeAlleAktiven() {
-    return this.produkte.filter((produkt) => produkt.produktAktiv !== false);
+  async findAllActive() {
+    return this.products.filter((product) => product.productActive !== false);
   }
 
-  async findeAlle() {
-    return [...this.produkte];
+  async findAll() {
+    return [...this.products];
   }
 
-  async speichereProdukt(produkt) {
-    if (produkt.id) {
-      const index = this.produkte.findIndex((eintrag) => eintrag.id === produkt.id);
+  async saveProduct(product) {
+    if (product.id) {
+      const index = this.products.findIndex((entry) => entry.id === product.id);
       if (index !== -1) {
-        this.produkte[index] = { ...this.produkte[index], ...produkt };
-        return this.produkte[index];
+        this.products[index] = { ...this.products[index], ...product };
+        return this.products[index];
       }
     }
-    const neuesProdukt = {
-      id: produkt.id || randomUUID(),
-      produktName: produkt.produktName,
-      produktBeschreibung: produkt.produktBeschreibung ?? null,
-      produktPreisBrutto: produkt.produktPreisBrutto,
-      waehrungCode: produkt.waehrungCode ?? "EUR",
-      produktKategorie: produkt.produktKategorie ?? null,
-      produktAktiv: produkt.produktAktiv ?? true,
-      optionenDefinition: produkt.optionenDefinition,
-      erstelltAm: new Date().toISOString(),
-      aktualisiertAm: new Date().toISOString(),
+    const newProduct = {
+      id: product.id || randomUUID(),
+      productName: product.productName,
+      productDescription: product.productDescription ?? null,
+      productPriceGross: product.productPriceGross,
+      currencyCode: product.currencyCode ?? "EUR",
+      productCategory: product.productCategory ?? null,
+      productActive: product.productActive ?? true,
+      optionsDefinition: product.optionsDefinition,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
     };
-    this.produkte.push(neuesProdukt);
-    return neuesProdukt;
+    this.products.push(newProduct);
+    return newProduct;
   }
 
-  async findeNachId(id) {
-    return this.produkte.find((produkt) => produkt.id === id) ?? null;
+  async findById(id) {
+    return this.products.find((product) => product.id === id) ?? null;
   }
 
-  async loescheProdukt(id) {
-    this.produkte = this.produkte.filter((produkt) => produkt.id !== id);
+  async deleteProduct(id) {
+    this.products = this.products.filter((product) => product.id !== id);
   }
 }
 
-class InMemoryBestellungRepository {
+class InMemoryOrderRepository {
   constructor() {
-    this.bestellungen = [];
+    this.orders = [];
   }
 
-  async findeAlle() {
-    return [...this.bestellungen];
+  async findAll() {
+    return [...this.orders];
   }
 
-  async speichereBestellung(bestellung) {
-    if (bestellung.id) {
-      const index = this.bestellungen.findIndex((eintrag) => eintrag.id === bestellung.id);
+  async saveOrder(order) {
+    if (order.id) {
+      const index = this.orders.findIndex((entry) => entry.id === order.id);
       if (index !== -1) {
-        this.bestellungen[index] = { ...this.bestellungen[index], ...bestellung };
-        return this.bestellungen[index];
+        this.orders[index] = { ...this.orders[index], ...order };
+        return this.orders[index];
       }
     }
-    const neueBestellung = {
-      id: bestellung.id || randomUUID(),
-      ...bestellung,
+    const newOrder = {
+      id: order.id || randomUUID(),
+      ...order,
     };
-    this.bestellungen.push(neueBestellung);
-    return neueBestellung;
+    this.orders.push(newOrder);
+    return newOrder;
   }
 
-  async findeNachId(id) {
-    return this.bestellungen.find((bestellung) => bestellung.id === id) ?? null;
+  async findById(id) {
+    return this.orders.find((order) => order.id === id) ?? null;
   }
 
-  async loesche(id) {
-    this.bestellungen = this.bestellungen.filter((bestellung) => bestellung.id !== id);
+  async remove(id) {
+    this.orders = this.orders.filter((order) => order.id !== id);
   }
 }
 
 describe("E2E Smoke", () => {
   let app;
-  let produktRepository;
-  let bestellungRepository;
-  const konfiguration = { adminToken: "test-token" };
+  let productRepository;
+  let orderRepository;
+  const config = { adminToken: "test-token" };
 
   beforeEach(() => {
-    produktRepository = new InMemoryProduktRepository();
-    bestellungRepository = new InMemoryBestellungRepository();
+    productRepository = new InMemoryProductRepository();
+    orderRepository = new InMemoryOrderRepository();
     app = express();
     app.use(bodyParser.json());
-    app.use("/api/produkte", produkteRouter({ produktRepository }));
-    app.use("/api/admin", adminRouter({ produktRepository, konfiguration }));
-    app.use("/api/bestellungen", bestellungenRouter({ produktRepository, bestellungRepository }));
+    app.use("/api/products", productsRouter({ productRepository }));
+    app.use("/api/admin", adminRouter({ productRepository, config }));
+    app.use("/api/orders", ordersRouter({ productRepository, orderRepository }));
   });
 
-  it("legt Produkt und Bestellung an und berechnet Preise", async () => {
-    const produktAntwort = await request(app)
-      .post("/api/admin/produkte")
+  it("creates a product and order and calculates prices", async () => {
+    const productResponse = await request(app)
+      .post("/api/admin/products")
       .set("x-admin-token", "test-token")
       .send({
-        produktName: "Testgericht",
-        produktBeschreibung: "Lecker",
-        produktPreisBrutto: 4,
-        produktKategorie: "Test",
-        produktAktiv: true,
-        optionenDefinition: {
-          gruppen: [
+        productName: "Test Dish",
+        productDescription: "Tasty",
+        productPriceGross: 4,
+        productCategory: "Test",
+        productActive: true,
+        optionsDefinition: {
+          groups: [
             {
               id: "extras",
               label: "Extras",
-              typ: "multi",
-              werte: [{ label: "Käse", preisDelta: 0.4 }],
+              type: "multi",
+              values: [{ label: "Cheese", priceDelta: 0.4 }],
             },
           ],
         },
       })
       .expect(201);
 
-    const produktId = produktAntwort.body.id;
+    const productId = productResponse.body.id;
 
-    const bestellungAntwort = await request(app)
-      .post("/api/bestellungen")
-      .set("x-geraete-id", "00000000-0000-0000-0000-000000000001")
+    const orderResponse = await request(app)
+      .post("/api/orders")
+      .set("x-device-id", "00000000-0000-0000-0000-000000000001")
       .send({
-        nutzerName: "Max",
-        positionen: [
+        customerName: "Max",
+        items: [
           {
-            produktId,
-            menge: 2,
-            ausgewaehlteOptionen: {
-              extras: ["Käse"],
+            productId,
+            quantity: 2,
+            selectedOptions: {
+              extras: ["Cheese"],
             },
           },
         ],
       })
       .expect(201);
 
-    expect(bestellungAntwort.body.gesamtPreisBrutto).toBeCloseTo(8.8, 2);
+    expect(orderResponse.body.totalPriceGross).toBeCloseTo(8.8, 2);
 
-    const listeAntwort = await request(app).get("/api/bestellungen").expect(200);
-    expect(listeAntwort.body).toHaveLength(1);
-    expect(listeAntwort.body[0].positionen[0].positionsPreisBruttoSnapshot).toBeCloseTo(8.8, 2);
+    const listResponse = await request(app).get("/api/orders").expect(200);
+    expect(listResponse.body).toHaveLength(1);
+    expect(listResponse.body[0].items[0].itemPriceGrossSnapshot).toBeCloseTo(8.8, 2);
   });
 });

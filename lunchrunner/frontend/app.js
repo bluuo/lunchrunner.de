@@ -1,285 +1,292 @@
-import { erzeugeOderLeseGeraeteId, formatPreisBetrag, validiereOptionen } from "./util.js";
+import { createOrReadDeviceId, formatPriceAmount, validateOptions } from "./util.js";
 
-const apiBasisUrl = window.location.origin.replace(/\/$/, "") + "/api";
+const apiBaseUrl = window.location.origin.replace(/\/$/, "") + "/api";
 const socket = io("/realtime", { path: "/socket.io" });
-const geraeteId = erzeugeOderLeseGeraeteId();
+const deviceId = createOrReadDeviceId();
 
-const produktAuswahlElement = document.querySelector("#produktAuswahl");
-const optionenContainerElement = document.querySelector("#optionenContainer");
-const bestellFormularElement = document.querySelector("#bestellFormular");
-const bestellungenListeElement = document.querySelector("#bestellungenListe");
-const nutzerNameElement = document.querySelector("#nutzerName");
-const produktMengeElement = document.querySelector("#produktMenge");
+const productSelectElement = document.querySelector("#productSelect");
+const optionsContainerElement = document.querySelector("#optionsContainer");
+const orderFormElement = document.querySelector("#orderForm");
+const ordersListElement = document.querySelector("#ordersList");
+const customerNameElement = document.querySelector("#customerName");
+const productQuantityElement = document.querySelector("#productQuantity");
 
-let produkteCache = [];
-let bestellungenCache = [];
+let productsCache = [];
+let ordersCache = [];
 
-async function ladeProdukte() {
-  const antwort = await fetch(`${apiBasisUrl}/produkte`);
-  if (!antwort.ok) {
-    throw new Error("Produkte konnten nicht geladen werden");
+async function loadProducts() {
+  const response = await fetch(`${apiBaseUrl}/products`);
+  if (!response.ok) {
+    throw new Error("Failed to load products");
   }
-  produkteCache = await antwort.json();
-  aktualisiereProduktAuswahl();
+  productsCache = await response.json();
+  updateProductSelect();
 }
 
-async function ladeBestellungen() {
-  const antwort = await fetch(`${apiBasisUrl}/bestellungen`);
-  if (!antwort.ok) {
-    throw new Error("Bestellungen konnten nicht geladen werden");
+async function loadOrders() {
+  const response = await fetch(`${apiBaseUrl}/orders`);
+  if (!response.ok) {
+    throw new Error("Failed to load orders");
   }
-  bestellungenCache = await antwort.json();
-  rendereBestellungen();
+  ordersCache = await response.json();
+  renderOrders();
 }
 
-function aktualisiereProduktAuswahl() {
-  produktAuswahlElement.innerHTML = "";
-  for (const produkt of produkteCache) {
+function updateProductSelect() {
+  productSelectElement.innerHTML = "";
+  for (const product of productsCache) {
     const option = document.createElement("option");
-    option.value = produkt.id;
-    option.textContent = `${produkt.produktName} (${formatPreisBetrag(produkt.produktPreisBrutto, produkt.waehrungCode)})`;
-    produktAuswahlElement.append(option);
+    option.value = product.id;
+    option.textContent = `${product.productName} (${formatPriceAmount(
+      product.productPriceGross,
+      product.currencyCode
+    )})`;
+    productSelectElement.append(option);
   }
-  baueOptionenFelder();
+  buildOptionFields();
 }
 
-function baueOptionenFelder() {
-  optionenContainerElement.innerHTML = "";
-  const produktId = produktAuswahlElement.value;
-  const produkt = produkteCache.find((eintrag) => eintrag.id === produktId);
-  if (!produkt || !produkt.optionenDefinition) {
-    optionenContainerElement.hidden = true;
+function buildOptionFields() {
+  optionsContainerElement.innerHTML = "";
+  const productId = productSelectElement.value;
+  const product = productsCache.find((entry) => entry.id === productId);
+  if (!product || !product.optionsDefinition) {
+    optionsContainerElement.hidden = true;
     return;
   }
-  optionenContainerElement.hidden = false;
-  for (const gruppe of produkt.optionenDefinition.gruppen ?? []) {
-    const gruppenElement = document.createElement("div");
-    gruppenElement.classList.add("optionen-gruppe");
+  optionsContainerElement.hidden = false;
+  for (const group of product.optionsDefinition.groups ?? []) {
+    const groupElement = document.createElement("div");
+    groupElement.classList.add("options-group");
 
-    const titelElement = document.createElement("h3");
-    titelElement.textContent = gruppe.label;
-    gruppenElement.append(titelElement);
+    const titleElement = document.createElement("h3");
+    titleElement.textContent = group.label;
+    groupElement.append(titleElement);
 
-    const werteContainer = document.createElement("div");
-    werteContainer.classList.add("optionen-werte");
+    const valuesContainer = document.createElement("div");
+    valuesContainer.classList.add("options-values");
 
-    if (gruppe.typ === "single") {
-      const leerOption = document.createElement("label");
-      const radioLeer = document.createElement("input");
-      radioLeer.type = "radio";
-      radioLeer.name = `option-${gruppe.id}`;
-      radioLeer.value = "";
-      radioLeer.checked = true;
-      leerOption.append(radioLeer, document.createTextNode("Keine Auswahl"));
-      werteContainer.append(leerOption);
+    if (group.type === "single") {
+      const emptyOption = document.createElement("label");
+      const emptyRadio = document.createElement("input");
+      emptyRadio.type = "radio";
+      emptyRadio.name = `option-${group.id}`;
+      emptyRadio.value = "";
+      emptyRadio.checked = true;
+      emptyOption.append(emptyRadio, document.createTextNode("No selection"));
+      valuesContainer.append(emptyOption);
     }
 
-    for (const wert of gruppe.werte) {
+    for (const value of group.values) {
       const label = document.createElement("label");
       const input = document.createElement("input");
-      input.value = wert.label;
-      if (gruppe.typ === "single") {
+      input.value = value.label;
+      if (group.type === "single") {
         input.type = "radio";
-        input.name = `option-${gruppe.id}`;
+        input.name = `option-${group.id}`;
       } else {
         input.type = "checkbox";
-        input.name = `option-${gruppe.id}`;
+        input.name = `option-${group.id}`;
       }
-      label.append(input, `${wert.label} (${formatPreisBetrag(wert.preisDelta, produkt.waehrungCode)})`);
-      werteContainer.append(label);
+      label.append(
+        input,
+        `${value.label} (${formatPriceAmount(value.priceDelta, product.currencyCode)})`
+      );
+      valuesContainer.append(label);
     }
 
-    gruppenElement.append(werteContainer);
-    optionenContainerElement.append(gruppenElement);
+    groupElement.append(valuesContainer);
+    optionsContainerElement.append(groupElement);
   }
 }
 
-function leseOptionenAusFormular() {
-  const produktId = produktAuswahlElement.value;
-  const produkt = produkteCache.find((eintrag) => eintrag.id === produktId);
-  if (!produkt || !produkt.optionenDefinition) {
+function readOptionsFromForm() {
+  const productId = productSelectElement.value;
+  const product = productsCache.find((entry) => entry.id === productId);
+  if (!product || !product.optionsDefinition) {
     return {};
   }
-  const auswahl = {};
-  for (const gruppe of produkt.optionenDefinition.gruppen ?? []) {
-    const inputs = optionenContainerElement.querySelectorAll(`[name="option-${gruppe.id}"]`);
-    if (gruppe.typ === "single") {
-      const gewaehlte = Array.from(inputs).find((input) => input.checked);
-      if (gewaehlte && gewaehlte.value) {
-        auswahl[gruppe.id] = gewaehlte.value;
+  const selection = {};
+  for (const group of product.optionsDefinition.groups ?? []) {
+    const inputs = optionsContainerElement.querySelectorAll(`[name="option-${group.id}"]`);
+    if (group.type === "single") {
+      const chosen = Array.from(inputs).find((input) => input.checked);
+      if (chosen && chosen.value) {
+        selection[group.id] = chosen.value;
       }
     } else {
-      const aktive = Array.from(inputs)
+      const activeValues = Array.from(inputs)
         .filter((input) => input.checked)
         .map((input) => input.value);
-      if (aktive.length > 0) {
-        auswahl[gruppe.id] = aktive;
+      if (activeValues.length > 0) {
+        selection[group.id] = activeValues;
       }
     }
   }
-  return auswahl;
+  return selection;
 }
 
-function rendereBestellungen() {
-  bestellungenListeElement.innerHTML = "";
-  for (const bestellung of bestellungenCache) {
-    const karte = document.createElement("article");
-    karte.classList.add("bestellung-karte");
+function renderOrders() {
+  ordersListElement.innerHTML = "";
+  for (const order of ordersCache) {
+    const card = document.createElement("article");
+    card.classList.add("order-card");
 
-    const kopf = document.createElement("div");
-    kopf.classList.add("bestellung-kopf");
+    const header = document.createElement("div");
+    header.classList.add("order-header");
     const nameElement = document.createElement("h3");
-    nameElement.textContent = bestellung.nutzerName;
-    const summeElement = document.createElement("span");
-    summeElement.textContent = formatPreisBetrag(bestellung.gesamtPreisBrutto, bestellung.waehrungCode);
-    kopf.append(nameElement, summeElement);
+    nameElement.textContent = order.customerName;
+    const totalElement = document.createElement("span");
+    totalElement.textContent = formatPriceAmount(order.totalPriceGross, order.currencyCode);
+    header.append(nameElement, totalElement);
 
-    const positionsListe = document.createElement("ul");
-    positionsListe.classList.add("bestellung-positionen");
+    const itemsList = document.createElement("ul");
+    itemsList.classList.add("order-items");
 
-    for (const position of bestellung.positionen) {
-      const eintrag = document.createElement("li");
-      const optionenDetails = [];
-      if (position.ausgewaehlteOptionen) {
-        for (const [schluessel, wert] of Object.entries(position.ausgewaehlteOptionen)) {
-          optionenDetails.push(`${schluessel}: ${Array.isArray(wert) ? wert.join(", ") : wert}`);
+    for (const item of order.items) {
+      const listItem = document.createElement("li");
+      const optionDetails = [];
+      if (item.selectedOptions) {
+        for (const [key, value] of Object.entries(item.selectedOptions)) {
+          optionDetails.push(`${key}: ${Array.isArray(value) ? value.join(", ") : value}`);
         }
       }
-      eintrag.textContent = `${position.menge} × ${position.produktNameSnapshot} (${formatPreisBetrag(position.positionsPreisBruttoSnapshot, position.waehrungCode)})${
-        optionenDetails.length ? ` – ${optionenDetails.join(" | ")}` : ""
-      }`;
-      positionsListe.append(eintrag);
+      listItem.textContent = `${item.quantity} × ${item.productNameSnapshot} (${formatPriceAmount(
+        item.itemPriceGrossSnapshot,
+        item.currencyCode
+      )})${optionDetails.length ? ` – ${optionDetails.join(" | ")}` : ""}`;
+      itemsList.append(listItem);
     }
 
-    karte.append(kopf, positionsListe);
+    card.append(header, itemsList);
 
-    if (bestellung.geraeteId === geraeteId) {
-      const aktionen = document.createElement("div");
-      aktionen.classList.add("bestellung-aktionen");
+    if (order.deviceId === deviceId) {
+      const actions = document.createElement("div");
+      actions.classList.add("order-actions");
 
-      const bearbeitenButton = document.createElement("button");
-      bearbeitenButton.classList.add("sekundaer");
-      bearbeitenButton.textContent = "Bearbeiten";
-      bearbeitenButton.addEventListener("click", () => bestellungBearbeiten(bestellung));
+      const editButton = document.createElement("button");
+      editButton.classList.add("secondary");
+      editButton.textContent = "Edit";
+      editButton.addEventListener("click", () => editOrder(order));
 
-      const loeschenButton = document.createElement("button");
-      loeschenButton.classList.add("sekundaer");
-      loeschenButton.textContent = "Löschen";
-      loeschenButton.addEventListener("click", () => bestellungLoeschen(bestellung.id));
+      const deleteButton = document.createElement("button");
+      deleteButton.classList.add("secondary");
+      deleteButton.textContent = "Delete";
+      deleteButton.addEventListener("click", () => deleteOrder(order.id));
 
-      aktionen.append(bearbeitenButton, loeschenButton);
-      karte.append(aktionen);
+      actions.append(editButton, deleteButton);
+      card.append(actions);
     }
 
-    bestellungenListeElement.append(karte);
+    ordersListElement.append(card);
   }
 }
 
-async function bestellungLoeschen(bestellungId) {
-  const bestaetigt = confirm("Bestellung wirklich löschen?");
-  if (!bestaetigt) {
+async function deleteOrder(orderId) {
+  const confirmed = confirm("Delete this order?");
+  if (!confirmed) {
     return;
   }
-  const antwort = await fetch(`${apiBasisUrl}/bestellungen/${bestellungId}`, {
+  const response = await fetch(`${apiBaseUrl}/orders/${orderId}`, {
     method: "DELETE",
     headers: {
       "Content-Type": "application/json",
-      "x-geraete-id": geraeteId,
+      "x-device-id": deviceId,
     },
   });
-  if (!antwort.ok) {
-    alert("Löschen fehlgeschlagen");
+  if (!response.ok) {
+    alert("Failed to delete order");
   }
 }
 
-function bestellungBearbeiten(bestellung) {
-  nutzerNameElement.value = bestellung.nutzerName;
-  const erstePosition = bestellung.positionen[0];
-  if (!erstePosition) {
+function editOrder(order) {
+  customerNameElement.value = order.customerName;
+  const firstItem = order.items[0];
+  if (!firstItem) {
     return;
   }
-  produktAuswahlElement.value = erstePosition.produktId;
-  baueOptionenFelder();
-  produktMengeElement.value = erstePosition.menge;
-  for (const gruppeElement of optionenContainerElement.querySelectorAll(".optionen-gruppe")) {
-    const gruppenId = gruppeElement.querySelector("input")?.name.replace("option-", "");
-    if (!gruppenId || !erstePosition.ausgewaehlteOptionen) {
+  productSelectElement.value = firstItem.productId;
+  buildOptionFields();
+  productQuantityElement.value = firstItem.quantity;
+  for (const groupElement of optionsContainerElement.querySelectorAll(".options-group")) {
+    const groupId = groupElement.querySelector("input")?.name.replace("option-", "");
+    if (!groupId || !firstItem.selectedOptions) {
       continue;
     }
-    const auswahlWert = erstePosition.ausgewaehlteOptionen[gruppenId];
-    const inputs = gruppeElement.querySelectorAll("input");
-    if (Array.isArray(auswahlWert)) {
+    const selectionValue = firstItem.selectedOptions[groupId];
+    const inputs = groupElement.querySelectorAll("input");
+    if (Array.isArray(selectionValue)) {
       for (const input of inputs) {
-        input.checked = auswahlWert.includes(input.value);
+        input.checked = selectionValue.includes(input.value);
       }
-    } else if (typeof auswahlWert === "string") {
+    } else if (typeof selectionValue === "string") {
       for (const input of inputs) {
-        input.checked = input.value === auswahlWert;
+        input.checked = input.value === selectionValue;
       }
     }
   }
-  bestellFormularElement.dataset.bearbeiteBestellungId = bestellung.id;
+  orderFormElement.dataset.editOrderId = order.id;
 }
 
-bestellFormularElement.addEventListener("submit", async (ereignis) => {
-  ereignis.preventDefault();
-  const produktId = produktAuswahlElement.value;
-  const produkt = produkteCache.find((eintrag) => eintrag.id === produktId);
-  if (!produkt) {
-    alert("Bitte Produkt wählen");
+orderFormElement.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const productId = productSelectElement.value;
+  const product = productsCache.find((entry) => entry.id === productId);
+  if (!product) {
+    alert("Please select a product");
     return;
   }
-  const optionenAuswahl = leseOptionenAusFormular();
-  if (!validiereOptionen(produkt.optionenDefinition, optionenAuswahl)) {
-    alert("Optionen ungültig");
+  const optionsSelection = readOptionsFromForm();
+  if (!validateOptions(product.optionsDefinition, optionsSelection)) {
+    alert("Options are invalid");
     return;
   }
   const payload = {
-    nutzerName: nutzerNameElement.value.trim(),
-    positionen: [
+    customerName: customerNameElement.value.trim(),
+    items: [
       {
-        produktId,
-        menge: Number(produktMengeElement.value),
-        ausgewaehlteOptionen: optionenAuswahl,
+        productId,
+        quantity: Number(productQuantityElement.value),
+        selectedOptions: optionsSelection,
       },
     ],
   };
-  const methode = bestellFormularElement.dataset.bearbeiteBestellungId ? "PUT" : "POST";
-  const url = bestellFormularElement.dataset.bearbeiteBestellungId
-    ? `${apiBasisUrl}/bestellungen/${bestellFormularElement.dataset.bearbeiteBestellungId}`
-    : `${apiBasisUrl}/bestellungen`;
-  const antwort = await fetch(url, {
-    method: methode,
+  const method = orderFormElement.dataset.editOrderId ? "PUT" : "POST";
+  const url = orderFormElement.dataset.editOrderId
+    ? `${apiBaseUrl}/orders/${orderFormElement.dataset.editOrderId}`
+    : `${apiBaseUrl}/orders`;
+  const response = await fetch(url, {
+    method,
     headers: {
       "Content-Type": "application/json",
-      "x-geraete-id": geraeteId,
+      "x-device-id": deviceId,
     },
     body: JSON.stringify(payload),
   });
-  if (!antwort.ok) {
-    const fehler = await antwort.json().catch(() => ({ nachricht: "Unbekannter Fehler" }));
-    alert(`Speichern fehlgeschlagen: ${fehler.nachricht ?? fehler.message}`);
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ message: "Unknown error" }));
+    alert(`Failed to save: ${error.message}`);
     return;
   }
-  bestellFormularElement.reset();
-  delete bestellFormularElement.dataset.bearbeiteBestellungId;
-  baueOptionenFelder();
+  orderFormElement.reset();
+  delete orderFormElement.dataset.editOrderId;
+  buildOptionFields();
 });
 
-produktAuswahlElement.addEventListener("change", () => baueOptionenFelder());
+productSelectElement.addEventListener("change", () => buildOptionFields());
 
-socket.on("produkteAktualisiert", (daten) => {
-  produkteCache = daten;
-  aktualisiereProduktAuswahl();
-  rendereBestellungen();
+socket.on("productsUpdated", (data) => {
+  productsCache = data;
+  updateProductSelect();
+  renderOrders();
 });
 
-socket.on("bestellungenAktualisiert", (daten) => {
-  bestellungenCache = daten;
-  rendereBestellungen();
+socket.on("ordersUpdated", (data) => {
+  ordersCache = data;
+  renderOrders();
 });
 
-Promise.all([ladeProdukte(), ladeBestellungen()]).catch((fehler) => {
-  console.error(fehler);
-  alert("Initiale Daten konnten nicht geladen werden");
+Promise.all([loadProducts(), loadOrders()]).catch((error) => {
+  console.error(error);
+  alert("Failed to load initial data");
 });

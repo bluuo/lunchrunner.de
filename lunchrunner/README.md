@@ -1,46 +1,46 @@
 # Lunchrunner
 
-Lunchrunner ist eine vollständige, selbst gehostete Bestellplattform mit Echtzeit-Aktualisierungen. Das Projekt besteht aus einem statischen Frontend (HTML/CSS/JS) und einem Node.js/Express Backend mit Socket.IO und PostgreSQL. Es eignet sich für Deployments auf einem VPS mit Plesk und Portainer.
+Lunchrunner is a fully self-hosted ordering board with real-time updates. The project combines a static frontend (HTML/CSS/JS) with a Node.js/Express backend that uses Socket.IO and PostgreSQL. It is designed for deployment on a VPS that is managed with Plesk and Portainer.
 
-## Architekturüberblick
+## Architecture overview
 
-- **Frontend** (`frontend/`): Statische Seiten (`index.html`, `admin.html`) mit Vanilla JavaScript.
-- **Backend** (`backend/`): Express-Server mit REST-API, Socket.IO, Knex und PostgreSQL.
-- **Realtime**: Socket.IO Namespace `/realtime` sendet `produkteAktualisiert` und `bestellungenAktualisiert` Events.
-- **Datenbank**: PostgreSQL mit Migration (`2025-01-init-schema.sql`) und Seed-Skript.
-- **Sicherheit**: Helmet, Rate-Limit, CORS nur für `https://lunchrunner.*`, Admin-Token & Geräte-Ownership.
-- **CI/CD**: Plesk Post-Deploy Script & Beispiel GitHub Workflow.
+- **Frontend** (`frontend/`): Static pages (`index.html`, `admin.html`) powered by vanilla JavaScript.
+- **Backend** (`backend/`): Express server exposing a REST API, Socket.IO gateway, Knex migrations, and PostgreSQL access.
+- **Realtime**: Socket.IO namespace `/realtime` emits `productsUpdated` and `ordersUpdated` events.
+- **Database**: PostgreSQL with migration (`2025-01-init-schema.sql`) and seed script.
+- **Security**: Helmet, rate limiting, domain restricted CORS, admin token, and device ownership enforcement.
+- **CI/CD**: Plesk post-deploy script and example GitHub workflow.
 
-## Schnellstart lokal
+## Local quick start
 
 ```bash
-# Repository klonen und in das Projekt wechseln
+# Clone the repository and switch into the project
 git clone <repo-url>
 cd lunchrunner
 
-# Backend Abhängigkeiten installieren
+# Install backend dependencies
 npm install --prefix backend
 
-# Datenbank (lokal über Docker) starten
+# Start the database (via Docker for local development)
 docker compose up -d db
 
-# Migrationen & Seed ausführen
+# Run migrations and seed data
 npm run migrate --prefix backend
 npm run seed --prefix backend
 
-# Backend im Entwicklungsmodus starten (setzt laufende DB voraus)
+# Launch the backend in development mode (requires the database)
 npm run dev --prefix backend
 ```
 
-Das Backend liefert das Frontend unter `http://localhost:3000` aus. Socket.IO verbindet sich automatisch.
+The backend serves the frontend at `http://localhost:3000`. Socket.IO connects automatically.
 
-## Projektstruktur
+## Project structure
 
 ```
 lunchrunner/
 ├─ backend/
 │  ├─ src/
-│  │  ├─ routes/, services/, db/, socket/, sicherheit/
+│  │  ├─ routes/, services/, db/, socket/, security/
 │  │  ├─ server.js (Express + Socket.IO)
 │  ├─ package.json, Dockerfile, .env.example
 ├─ frontend/
@@ -51,26 +51,26 @@ lunchrunner/
 ├─ .github/workflows/deploy.yml
 ```
 
-## Plesk Deployment ("Deploy using Git")
+## Plesk deployment ("Deploy using Git")
 
-1. **Repository hinzufügen**: In Plesk unter *Websites & Domains → Git* das Repo (Branch `main`) verknüpfen.
-2. **Deployment-Modus**: "Automatically deploy on push" aktivieren.
-3. **Node.js App konfigurieren**:
-   - Node-Version: 18.x
-   - Dokumentenstamm: Projektordner `lunchrunner`
-   - Startdatei: `backend/src/server.js`
-   - Umgebungsvariablen setzen (`PORT`, `DATABASE_URL`, `CORS_ORIGIN`, `ADMIN_TOKEN`).
-4. **Post-Deployment Script**: Im Git-Setup `plesk-post-deploy.sh` eintragen. Das Script erledigt `npm ci`, Migrationen und optional PM2-Restart.
-5. **Reverse Proxy**: Falls nötig `infra/nginx-example.conf` als Vorlage für Nginx/Apache verwenden (Proxy auf Port 3000, WebSocket-Unterstützung).
-6. **Datenbank**: PostgreSQL-Service konfigurieren (z. B. via Plesk oder externe Instanz). Zugangsdaten in `.env` bzw. Plesk-Umgebungsvariablen hinterlegen.
+1. **Add the repository**: In Plesk under *Websites & Domains → Git* link the repo (branch `main`).
+2. **Deployment mode**: Enable "Automatically deploy on push".
+3. **Configure the Node.js app**:
+   - Node version: 18.x
+  - Document root: project folder `lunchrunner`
+   - Application startup file: `backend/src/server.js`
+   - Set environment variables (`PORT`, `DATABASE_URL`, `CORS_ORIGIN`, `ADMIN_TOKEN`).
+4. **Post-deployment script**: Register `plesk-post-deploy.sh` in the Git settings. The script runs `npm ci`, executes migrations, and optionally restarts a PM2 process.
+5. **Reverse proxy**: If needed, use `infra/nginx-example.conf` as a template for Nginx/Apache (proxy to port 3000 with WebSocket support).
+6. **Database**: Configure a PostgreSQL service (via Plesk or an external instance). Provide credentials via `.env` or Plesk environment variables.
 
 ### PM2 (optional)
 
-Wenn PM2 genutzt wird, legt das Post-Deploy Script den Prozess `lunchrunner` an. Alternativ kann die Plesk Node-App Verwaltung den Prozess starten.
+If PM2 is used, the post-deploy script manages the `lunchrunner` process. Alternatively, rely on the Plesk Node.js app manager.
 
 ## Portainer / Docker Compose
 
-Für einen containerisierten Betrieb über Portainer oder CLI steht `docker-compose.yml` bereit.
+`docker-compose.yml` is ready for container-based operation via Portainer or the CLI.
 
 ```bash
 docker compose up -d
@@ -78,83 +78,83 @@ docker compose up -d
 
 Services:
 
-- `db`: PostgreSQL 16 mit persistentem Volume `db_daten`.
-- `app`: Backend im Entwicklungsmodus (bindet lokalen Quellcode ein). Für Produktion empfiehlt sich ein eigenständiges Build (z. B. `docker compose -f docker-compose.yml --profile production up`).
+- `db`: PostgreSQL 16 with a persistent `db_data` volume.
+- `app`: Backend in development mode (mounts the local source tree). For production, prefer a dedicated build (for example `docker compose -f docker-compose.yml --profile production up`).
 
-Passen Sie `CORS_ORIGIN` und `ADMIN_TOKEN` in der Compose-Datei an Ihre Domain an.
+Adjust `CORS_ORIGIN` and `ADMIN_TOKEN` in the compose file to reflect your domain.
 
 ## GitHub Actions (optional)
 
-Unter `.github/workflows/deploy.yml` befindet sich ein Beispielworkflow für Deployments via SSH (z. B. auf den Plesk-Server). Passen Sie Host, Benutzer und Pfade an Ihre Umgebung an.
+`.github/workflows/deploy.yml` contains an SSH-based deployment example (e.g., targeting the Plesk server). Update host, user, and paths for your environment.
 
 ## Tests
 
-- `npm test --prefix backend` führt Vitest-Unit-Tests (`preisBerechnung`, `optionenValidierung`) und den Smoke-Test (In-Memory API) aus.
-- Weitere Tests können über zusätzliche Vitest-Suites ergänzt werden.
+- `npm test --prefix backend` runs the Vitest unit tests (`priceCalculation`, `optionsValidation`) and the smoke test (in-memory API).
+- Extend with additional Vitest suites as needed.
 
-## Sicherheit & Betrieb
+## Security & operations
 
-- **CORS**: Standardmäßig nur `https://lunchrunner.de` erlaubt. Passen Sie `CORS_ORIGIN` an.
-- **Rate-Limit**: Schreiboperationen auf 100 Requests / 10 Minuten begrenzt.
-- **Helmet**: Liefert sichere HTTP-Header, inkl. Content-Security-Policy.
-- **Admin-Token**: In `backend/.env` definieren und in Admin-UI eingeben (LocalStorage speichert Token clientseitig).
-- **Geräte-Ownership**: Frontend erzeugt `geraeteId` (UUID) und sendet diese mit `x-geraete-id`. Backend erlaubt Änderungsoperationen nur für passende Geräte.
+- **CORS**: Defaults to `https://lunchrunner.de`. Update `CORS_ORIGIN` for your domain.
+- **Rate limiting**: Write operations are limited to 100 requests per 10 minutes.
+- **Helmet**: Provides secure HTTP headers including a Content-Security-Policy.
+- **Admin token**: Configure in `backend/.env` and enter it in the admin UI (stored in LocalStorage).
+- **Device ownership**: The frontend generates a `deviceId` (UUID) and sends it as `x-device-id`. The backend restricts modifications to matching devices.
 
-## Datenbankmodell
+## Database model
 
-### Tabelle `produkte`
+### Table `products`
 
-| Spalte | Typ | Beschreibung |
+| Column | Type | Description |
 | --- | --- | --- |
-| id | UUID (PK) | Produkt-ID |
-| produkt_name | TEXT | Name |
-| produkt_beschreibung | TEXT | Beschreibung |
-| produkt_preis_brutto | NUMERIC(10,2) | Bruttopreis |
-| waehrung_code | VARCHAR(3) | Währung (Standard: EUR) |
-| produkt_kategorie | TEXT | Kategorie |
-| produkt_aktiv | BOOLEAN | Sichtbarkeit |
-| optionen_definition | JSONB | Definition der Optionen |
-| erstellt_am / aktualisiert_am | TIMESTAMPTZ | Timestamps |
+| id | UUID (PK) | Product identifier |
+| product_name | TEXT | Name |
+| product_description | TEXT | Description |
+| product_price_gross | NUMERIC(10,2) | Gross price |
+| currency_code | VARCHAR(3) | Currency (default: EUR) |
+| product_category | TEXT | Category |
+| product_active | BOOLEAN | Visibility |
+| options_definition | JSONB | Options definition |
+| created_at / updated_at | TIMESTAMPTZ | Timestamps |
 
-### Tabelle `bestellungen`
+### Table `orders`
 
-| Spalte | Typ | Beschreibung |
+| Column | Type | Description |
 | --- | --- | --- |
-| id | UUID (PK) | Bestellung |
-| geraete_id | UUID | Gerätebindung |
-| nutzer_name | TEXT | Anzeigename |
-| positionen | JSONB[] | Positionen inkl. Preis-Snapshots |
-| gesamt_preis_brutto | NUMERIC(10,2) | Gesamtpreis |
-| waehrung_code | VARCHAR(3) | Währung |
-| erstellt_am / aktualisiert_am | TIMESTAMPTZ | Timestamps |
+| id | UUID (PK) | Order identifier |
+| device_id | UUID | Device binding |
+| customer_name | TEXT | Display name |
+| items | JSONB[] | Items including price snapshots |
+| total_price_gross | NUMERIC(10,2) | Total gross price |
+| currency_code | VARCHAR(3) | Currency |
+| created_at / updated_at | TIMESTAMPTZ | Timestamps |
 
-## Admin-Optionen Definition
+## Admin options definition
 
 ```
 {
-  "gruppen": [
+  "groups": [
     {
       "id": "sauce",
       "label": "Sauce",
-      "typ": "single",
-      "werte": [
-        { "label": "Ketchup", "preisDelta": 0.00 },
-        { "label": "BBQ", "preisDelta": 0.20 }
+      "type": "single",
+      "values": [
+        { "label": "Ketchup", "priceDelta": 0.00 },
+        { "label": "BBQ", "priceDelta": 0.20 }
       ]
     },
     {
       "id": "extras",
       "label": "Extras",
-      "typ": "multi",
-      "werte": [
-        { "label": "Zwiebeln", "preisDelta": 0.10 },
-        { "label": "Käse", "preisDelta": 0.40 }
+      "type": "multi",
+      "values": [
+        { "label": "Onions", "priceDelta": 0.10 },
+        { "label": "Cheese", "priceDelta": 0.40 }
       ]
     }
   ]
 }
 ```
 
-## Lizenz
+## License
 
 MIT

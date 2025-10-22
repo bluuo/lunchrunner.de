@@ -1,15 +1,15 @@
 import { logger } from "../logger.js";
 
-export function errorHandler(fehler, req, res, next) {
-  logger.error("Fehler im Request", {
-    nachricht: fehler.message,
-    stack: fehler.stack,
+export function errorHandler(error, req, res, next) {
+  logger.error("Request error", {
+    message: error.message,
+    stack: error.stack,
   });
   if (res.headersSent) {
-    return next(fehler);
+    return next(error);
   }
-  const status = fehler.status || 500;
+  const status = error.status || 500;
   res.status(status).json({
-    nachricht: fehler.nachricht || fehler.message || "Interner Serverfehler",
+    message: error.message || "Internal server error",
   });
 }

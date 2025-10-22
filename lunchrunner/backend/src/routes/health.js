@@ -1,6 +1,6 @@
 import { Router } from "express";
 
-export function gesundheitRouter() {
+export function healthRouter() {
   const router = Router();
   router.get("/", (req, res) => {
     res.json({ status: "ok" });

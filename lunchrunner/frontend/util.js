@@ -1,19 +1,19 @@
-export function formatPreisBetrag(betrag, waehrungCode, locale = "de-DE") {
+export function formatPriceAmount(amount, currencyCode, locale = "de-DE") {
   return new Intl.NumberFormat(locale, {
     style: "currency",
-    currency: waehrungCode,
-  }).format(Number(betrag));
+    currency: currencyCode,
+  }).format(Number(amount));
 }
 
-export function generiereUuidV4() {
+export function generateUuidV4() {
   if (crypto.randomUUID) {
     return crypto.randomUUID();
   }
-  const zufallswerte = new Uint8Array(16);
-  crypto.getRandomValues(zufallswerte);
-  zufallswerte[6] = (zufallswerte[6] & 0x0f) | 0x40;
-  zufallswerte[8] = (zufallswerte[8] & 0x3f) | 0x80;
-  const hex = Array.from(zufallswerte, (wert) => wert.toString(16).padStart(2, "0"));
+  const randomValues = new Uint8Array(16);
+  crypto.getRandomValues(randomValues);
+  randomValues[6] = (randomValues[6] & 0x0f) | 0x40;
+  randomValues[8] = (randomValues[8] & 0x3f) | 0x80;
+  const hex = Array.from(randomValues, (value) => value.toString(16).padStart(2, "0"));
   return (
     hex.slice(0, 4).join("") +
     "-" +
@@ -27,45 +27,45 @@ export function generiereUuidV4() {
   );
 }
 
-const geraeteIdSchluessel = "lunchrunner-geraete-id";
+const deviceIdKey = "lunchrunner-device-id";
 
-export function erzeugeOderLeseGeraeteId() {
-  let geraeteId = localStorage.getItem(geraeteIdSchluessel);
-  if (!geraeteId) {
-    geraeteId = generiereUuidV4();
-    localStorage.setItem(geraeteIdSchluessel, geraeteId);
+export function createOrReadDeviceId() {
+  let deviceId = localStorage.getItem(deviceIdKey);
+  if (!deviceId) {
+    deviceId = generateUuidV4();
+    localStorage.setItem(deviceIdKey, deviceId);
   }
-  return geraeteId;
+  return deviceId;
 }
 
-export function leseAdminToken() {
+export function readAdminToken() {
   return localStorage.getItem("lunchrunner-admin-token") ?? "";
 }
 
-export function speichereAdminToken(token) {
+export function storeAdminToken(token) {
   localStorage.setItem("lunchrunner-admin-token", token);
 }
 
-export function validiereOptionen(definition, auswahl) {
-  if (!definition || typeof definition !== "object" || !Array.isArray(definition.gruppen)) {
+export function validateOptions(definition, selection) {
+  if (!definition || typeof definition !== "object" || !Array.isArray(definition.groups)) {
     return false;
   }
-  if (!auswahl || typeof auswahl !== "object") {
+  if (!selection || typeof selection !== "object") {
     return false;
   }
-  return definition.gruppen.every((gruppe) => {
-    const auswahlWert = auswahl[gruppe.id];
-    if (gruppe.typ === "single") {
-      if (auswahlWert === undefined || auswahlWert === null || auswahlWert === "") {
+  return definition.groups.every((group) => {
+    const selectionValue = selection[group.id];
+    if (group.type === "single") {
+      if (selectionValue === undefined || selectionValue === null || selectionValue === "") {
         return true;
       }
-      return gruppe.werte.some((wert) => wert.label === auswahlWert);
+      return group.values.some((value) => value.label === selectionValue);
     }
-    if (gruppe.typ === "multi") {
-      if (!Array.isArray(auswahlWert)) {
-        return auswahlWert === undefined || auswahlWert === null;
+    if (group.type === "multi") {
+      if (!Array.isArray(selectionValue)) {
+        return selectionValue === undefined || selectionValue === null;
       }
-      return auswahlWert.every((eintrag) => gruppe.werte.some((wert) => wert.label === eintrag));
+      return selectionValue.every((entry) => group.values.some((value) => value.label === entry));
     }
     return false;
   });

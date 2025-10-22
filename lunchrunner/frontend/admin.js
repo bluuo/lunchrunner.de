@@ -1,82 +1,82 @@
 import {
-  formatPreisBetrag,
-  leseAdminToken,
-  speichereAdminToken,
-  validiereOptionen,
+  formatPriceAmount,
+  readAdminToken,
+  storeAdminToken,
+  validateOptions,
 } from "./util.js";
 
-const apiBasisUrl = window.location.origin.replace(/\/$/, "") + "/api";
+const apiBaseUrl = window.location.origin.replace(/\/$/, "") + "/api";
 const socket = io("/realtime", { path: "/socket.io" });
 
-const adminTokenFormular = document.querySelector("#adminTokenFormular");
-const adminTokenEingabe = document.querySelector("#adminTokenEingabe");
-const produkteListeElement = document.querySelector("#produkteListe");
-const neuesProduktButton = document.querySelector("#neuesProduktButton");
-const produktEditorBereich = document.querySelector("#produktEditorBereich");
-const produktEditorTitel = document.querySelector("#produktEditorTitel");
-const produktFormular = document.querySelector("#produktFormular");
-const produktIdEingabe = document.querySelector("#produktId");
-const produktNameEingabe = document.querySelector("#produktName");
-const produktBeschreibungEingabe = document.querySelector("#produktBeschreibung");
-const produktPreisEingabe = document.querySelector("#produktPreis");
-const produktKategorieEingabe = document.querySelector("#produktKategorie");
-const produktAktivAuswahl = document.querySelector("#produktAktiv");
-const optionenDefinitionTextarea = document.querySelector("#optionenDefinition");
-const abbrechenButton = document.querySelector("#abbrechenButton");
+const adminTokenForm = document.querySelector("#adminTokenForm");
+const adminTokenInput = document.querySelector("#adminTokenInput");
+const productsListElement = document.querySelector("#productsList");
+const newProductButton = document.querySelector("#newProductButton");
+const productEditorSection = document.querySelector("#productEditorSection");
+const productEditorTitle = document.querySelector("#productEditorTitle");
+const productForm = document.querySelector("#productForm");
+const productIdInput = document.querySelector("#productId");
+const productNameInput = document.querySelector("#productName");
+const productDescriptionInput = document.querySelector("#productDescription");
+const productPriceInput = document.querySelector("#productPrice");
+const productCategoryInput = document.querySelector("#productCategory");
+const productActiveSelect = document.querySelector("#productActive");
+const optionsDefinitionTextarea = document.querySelector("#optionsDefinition");
+const cancelButton = document.querySelector("#cancelButton");
 
-let produkteCache = [];
-let adminToken = leseAdminToken();
-adminTokenEingabe.value = adminToken;
+let productsCache = [];
+let adminToken = readAdminToken();
+adminTokenInput.value = adminToken;
 
-adminTokenFormular.addEventListener("submit", (ereignis) => {
-  ereignis.preventDefault();
-  adminToken = adminTokenEingabe.value.trim();
-  speichereAdminToken(adminToken);
-  alert("Token gespeichert");
-  ladeProdukte();
+adminTokenForm.addEventListener("submit", (event) => {
+  event.preventDefault();
+  adminToken = adminTokenInput.value.trim();
+  storeAdminToken(adminToken);
+  alert("Token saved");
+  loadProducts();
 });
 
-neuesProduktButton.addEventListener("click", () => {
-  produktEditorTitel.textContent = "Neues Produkt anlegen";
-  produktFormular.reset();
-  produktIdEingabe.value = "";
-  optionenDefinitionTextarea.value = JSON.stringify(
+newProductButton.addEventListener("click", () => {
+  productEditorTitle.textContent = "Create new product";
+  productForm.reset();
+  productIdInput.value = "";
+  optionsDefinitionTextarea.value = JSON.stringify(
     {
-      gruppen: [],
+      groups: [],
     },
     null,
     2
   );
-  produktEditorBereich.hidden = false;
+  productEditorSection.hidden = false;
 });
 
-abbrechenButton.addEventListener("click", () => {
-  produktEditorBereich.hidden = true;
+cancelButton.addEventListener("click", () => {
+  productEditorSection.hidden = true;
 });
 
-produktFormular.addEventListener("submit", async (ereignis) => {
-  ereignis.preventDefault();
-  let optionenDefinition;
+productForm.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  let optionsDefinition;
   try {
-    optionenDefinition = JSON.parse(optionenDefinitionTextarea.value);
-  } catch (fehler) {
-    alert("Optionen-Definition ist kein gültiges JSON");
+    optionsDefinition = JSON.parse(optionsDefinitionTextarea.value);
+  } catch (error) {
+    alert("Options definition must be valid JSON");
     return;
   }
-  if (!validiereOptionen(optionenDefinition, {})) {
-    alert("Optionen-Definition entspricht nicht dem Schema");
+  if (!validateOptions(optionsDefinition, {})) {
+    alert("Options definition does not match the schema");
     return;
   }
   const payload = {
-    id: produktIdEingabe.value || undefined,
-    produktName: produktNameEingabe.value.trim(),
-    produktBeschreibung: produktBeschreibungEingabe.value.trim(),
-    produktPreisBrutto: Number(produktPreisEingabe.value),
-    produktKategorie: produktKategorieEingabe.value.trim(),
-    produktAktiv: produktAktivAuswahl.value === "true",
-    optionenDefinition,
+    id: productIdInput.value || undefined,
+    productName: productNameInput.value.trim(),
+    productDescription: productDescriptionInput.value.trim(),
+    productPriceGross: Number(productPriceInput.value),
+    productCategory: productCategoryInput.value.trim(),
+    productActive: productActiveSelect.value === "true",
+    optionsDefinition,
   };
-  const antwort = await fetch(`${apiBasisUrl}/admin/produkte`, {
+  const response = await fetch(`${apiBaseUrl}/admin/products`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -84,109 +84,112 @@ produktFormular.addEventListener("submit", async (ereignis) => {
     },
     body: JSON.stringify(payload),
   });
-  if (!antwort.ok) {
-    const fehler = await antwort.json().catch(() => ({ nachricht: "Unbekannter Fehler" }));
-    alert(`Speichern fehlgeschlagen: ${fehler.nachricht ?? fehler.message}`);
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ message: "Unknown error" }));
+    alert(`Saving failed: ${error.message}`);
     return;
   }
-  produktEditorBereich.hidden = true;
+  productEditorSection.hidden = true;
 });
 
-function rendereProdukte() {
-  produkteListeElement.innerHTML = "";
-  for (const produkt of produkteCache) {
-    const karte = document.createElement("article");
-    karte.classList.add("produkt-karte");
+function renderProducts() {
+  productsListElement.innerHTML = "";
+  for (const product of productsCache) {
+    const card = document.createElement("article");
+    card.classList.add("product-card");
 
-    const kopf = document.createElement("header");
-    const titel = document.createElement("h3");
-    titel.textContent = produkt.produktName;
-    const preis = document.createElement("span");
-    preis.textContent = formatPreisBetrag(produkt.produktPreisBrutto, produkt.waehrungCode);
-    kopf.append(titel, preis);
+    const header = document.createElement("header");
+    const title = document.createElement("h3");
+    title.textContent = product.productName;
+    const price = document.createElement("span");
+    price.textContent = formatPriceAmount(product.productPriceGross, product.currencyCode);
+    header.append(title, price);
 
-    const beschreibung = document.createElement("p");
-    beschreibung.textContent = produkt.produktBeschreibung ?? "Keine Beschreibung";
+    const description = document.createElement("p");
+    description.textContent = product.productDescription ?? "No description";
 
     const status = document.createElement("p");
-    status.innerHTML = `<strong>Status:</strong> ${produkt.produktAktiv ? "Aktiv" : "Inaktiv"}`;
+    status.innerHTML = `<strong>Status:</strong> ${product.productActive ? "Active" : "Inactive"}`;
 
-    const optionen = document.createElement("pre");
-    optionen.textContent = JSON.stringify(produkt.optionenDefinition, null, 2);
+    const options = document.createElement("pre");
+    options.textContent = JSON.stringify(product.optionsDefinition, null, 2);
 
-    const aktionen = document.createElement("div");
-    aktionen.classList.add("bestellung-aktionen");
+    const actions = document.createElement("div");
+    actions.classList.add("order-actions");
 
-    const bearbeitenButton = document.createElement("button");
-    bearbeitenButton.classList.add("sekundaer");
-    bearbeitenButton.textContent = "Bearbeiten";
-    bearbeitenButton.addEventListener("click", () => produktBearbeiten(produkt));
+    const editButton = document.createElement("button");
+    editButton.classList.add("secondary");
+    editButton.textContent = "Edit";
+    editButton.addEventListener("click", () => editProduct(product));
 
-    const loeschenButton = document.createElement("button");
-    loeschenButton.classList.add("sekundaer");
-    loeschenButton.textContent = "Löschen";
-    loeschenButton.addEventListener("click", () => produktLoeschen(produkt.id));
+    const deleteButton = document.createElement("button");
+    deleteButton.classList.add("secondary");
+    deleteButton.textContent = "Delete";
+    deleteButton.addEventListener("click", () => deleteProduct(product.id));
 
-    aktionen.append(bearbeitenButton, loeschenButton);
+    actions.append(editButton, deleteButton);
 
-    karte.append(kopf, beschreibung, status, optionen, aktionen);
-    produkteListeElement.append(karte);
+    card.append(header, description, status, options, actions);
+    productsListElement.append(card);
   }
 }
 
-async function produktLoeschen(produktId) {
-  const bestaetigt = confirm("Produkt wirklich löschen?");
-  if (!bestaetigt) {
+async function deleteProduct(productId) {
+  const confirmed = confirm("Delete this product?");
+  if (!confirmed) {
     return;
   }
-  const antwort = await fetch(`${apiBasisUrl}/admin/produkte/${produktId}`, {
+  const response = await fetch(`${apiBaseUrl}/admin/products/${productId}`, {
     method: "DELETE",
     headers: {
       "x-admin-token": adminToken,
     },
   });
-  if (!antwort.ok) {
-    const fehler = await antwort.json().catch(() => ({ nachricht: "Unbekannter Fehler" }));
-    alert(`Löschen fehlgeschlagen: ${fehler.nachricht ?? fehler.message}`);
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ message: "Unknown error" }));
+    alert(`Deletion failed: ${error.message}`);
   }
 }
 
-function produktBearbeiten(produkt) {
-  produktEditorTitel.textContent = "Produkt bearbeiten";
-  produktIdEingabe.value = produkt.id;
-  produktNameEingabe.value = produkt.produktName;
-  produktBeschreibungEingabe.value = produkt.produktBeschreibung ?? "";
-  produktPreisEingabe.value = produkt.produktPreisBrutto;
-  produktKategorieEingabe.value = produkt.produktKategorie ?? "";
-  produktAktivAuswahl.value = produkt.produktAktiv ? "true" : "false";
-  optionenDefinitionTextarea.value = JSON.stringify(produkt.optionenDefinition, null, 2);
-  produktEditorBereich.hidden = false;
+function editProduct(product) {
+  productEditorTitle.textContent = "Edit product";
+  productIdInput.value = product.id;
+  productNameInput.value = product.productName;
+  productDescriptionInput.value = product.productDescription ?? "";
+  productPriceInput.value = product.productPriceGross;
+  productCategoryInput.value = product.productCategory ?? "";
+  productActiveSelect.value = product.productActive ? "true" : "false";
+  optionsDefinitionTextarea.value = JSON.stringify(product.optionsDefinition, null, 2);
+  productEditorSection.hidden = false;
 }
 
-socket.on("produkteAktualisiert", () => {
-  ladeProdukte();
+socket.on("productsUpdated", () => {
+  loadProducts();
 });
 
-async function ladeProdukte() {
+async function loadProducts() {
   const headers = {};
   if (adminToken) {
     headers["x-admin-token"] = adminToken;
   }
-  const antwort = await fetch(adminToken ? `${apiBasisUrl}/admin/produkte` : `${apiBasisUrl}/produkte`, {
-    headers,
-  });
-  if (!antwort.ok) {
-    if (antwort.status === 401 && adminToken) {
-      alert("Admin-Token ungültig");
-      produkteCache = await (await fetch(`${apiBasisUrl}/produkte`)).json();
+  const response = await fetch(
+    adminToken ? `${apiBaseUrl}/admin/products` : `${apiBaseUrl}/products`,
+    {
+      headers,
+    }
+  );
+  if (!response.ok) {
+    if (response.status === 401 && adminToken) {
+      alert("Admin token invalid");
+      productsCache = await (await fetch(`${apiBaseUrl}/products`)).json();
     } else {
-      alert("Produkte konnten nicht geladen werden");
+      alert("Failed to load products");
       return;
     }
   } else {
-    produkteCache = await antwort.json();
+    productsCache = await response.json();
   }
-  rendereProdukte();
+  renderProducts();
 }
 
-ladeProdukte();
+loadProducts();

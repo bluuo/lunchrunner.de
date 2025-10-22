@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="de">
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -8,67 +8,67 @@
   </head>
   <body>
     <header>
-      <h1>Produktverwaltung</h1>
-      <p class="untertitel">Pflege Produkte und Optionen in Echtzeit.</p>
+      <h1>Product management</h1>
+      <p class="subtitle">Maintain menu items and options in real time.</p>
     </header>
 
     <main>
-      <section class="formular-bereich">
-        <h2>Admin-Authentifizierung</h2>
-        <form id="adminTokenFormular">
-          <div class="form-gruppe">
-            <label for="adminTokenEingabe">Admin-Token</label>
-            <input type="password" id="adminTokenEingabe" required />
+      <section class="form-section">
+        <h2>Admin authentication</h2>
+        <form id="adminTokenForm">
+          <div class="form-group">
+            <label for="adminTokenInput">Admin token</label>
+            <input type="password" id="adminTokenInput" required />
           </div>
-          <button type="submit" class="primaer">Token speichern</button>
+          <button type="submit" class="primary">Save token</button>
         </form>
       </section>
 
-      <section class="liste-bereich">
-        <div class="titel-mit-aktionen">
-          <h2>Produkte</h2>
-          <button id="neuesProduktButton" class="sekundaer">Neues Produkt</button>
+      <section class="list-section">
+        <div class="title-with-actions">
+          <h2>Products</h2>
+          <button id="newProductButton" class="secondary">New product</button>
         </div>
-        <div id="produkteListe" class="produkte-liste"></div>
+        <div id="productsList" class="products-list"></div>
       </section>
 
-      <section class="formular-bereich" id="produktEditorBereich" hidden>
-        <h2 id="produktEditorTitel">Produkt bearbeiten</h2>
-        <form id="produktFormular">
-          <input type="hidden" id="produktId" />
-          <div class="form-gruppe">
-            <label for="produktName">Produktname</label>
-            <input type="text" id="produktName" required />
+      <section class="form-section" id="productEditorSection" hidden>
+        <h2 id="productEditorTitle">Edit product</h2>
+        <form id="productForm">
+          <input type="hidden" id="productId" />
+          <div class="form-group">
+            <label for="productName">Product name</label>
+            <input type="text" id="productName" required />
           </div>
-          <div class="form-gruppe">
-            <label for="produktBeschreibung">Beschreibung</label>
-            <textarea id="produktBeschreibung" rows="3"></textarea>
+          <div class="form-group">
+            <label for="productDescription">Description</label>
+            <textarea id="productDescription" rows="3"></textarea>
           </div>
-          <div class="form-gruppe">
-            <label for="produktPreis">Basispreis (Brutto)</label>
-            <input type="number" step="0.01" min="0" id="produktPreis" required />
+          <div class="form-group">
+            <label for="productPrice">Base price (gross)</label>
+            <input type="number" step="0.01" min="0" id="productPrice" required />
           </div>
-          <div class="form-gruppe">
-            <label for="produktKategorie">Kategorie</label>
-            <input type="text" id="produktKategorie" />
+          <div class="form-group">
+            <label for="productCategory">Category</label>
+            <input type="text" id="productCategory" />
           </div>
-          <div class="form-gruppe">
-            <label for="produktAktiv">Aktiv</label>
-            <select id="produktAktiv">
-              <option value="true">Ja</option>
-              <option value="false">Nein</option>
+          <div class="form-group">
+            <label for="productActive">Active</label>
+            <select id="productActive">
+              <option value="true">Yes</option>
+              <option value="false">No</option>
             </select>
           </div>
-          <div class="form-gruppe">
-            <label for="optionenDefinition">Optionen-Definition (JSON)</label>
-            <textarea id="optionenDefinition" rows="10" required></textarea>
+          <div class="form-group">
+            <label for="optionsDefinition">Options definition (JSON)</label>
+            <textarea id="optionsDefinition" rows="10" required></textarea>
             <small>
-              Struktur siehe README. Bitte gültiges JSON eintragen.
+              See README for the structure. Please provide valid JSON.
             </small>
           </div>
-          <div class="formular-aktionen">
-            <button type="submit" class="primaer">Speichern</button>
-            <button type="button" id="abbrechenButton" class="sekundaer">Abbrechen</button>
+          <div class="form-actions">
+            <button type="submit" class="primary">Save</button>
+            <button type="button" id="cancelButton" class="secondary">Cancel</button>
           </div>
         </form>
       </section>
@@ -76,11 +76,15 @@
 
     <footer>
       <p>
-        Zurück zum <a href="index.html">Bestellboard</a>
+        Back to the <a href="index.html">order board</a>
       </p>
     </footer>
 
-    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js" integrity="sha384-9vlh++/YCA7k+yvHhJPwPM8XcgTcF8KrlR2vgMOgc8ZJ28cN06ytgZPlmJxWOhqS" crossorigin="anonymous"></script>
+    <script
+      src="https://cdn.socket.io/4.7.5/socket.io.min.js"
+      integrity="sha384-9vlh++/YCA7k+yvHhJPwPM8XcgTcF8KrlR2vgMOgc8ZJ28cN06ytgZPlmJxWOhqS"
+      crossorigin="anonymous"
+    ></script>
     <script type="module" src="util.js"></script>
     <script type="module" src="admin.js"></script>
   </body>

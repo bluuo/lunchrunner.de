@@ -4,57 +4,51 @@ import bodyParser from "body-parser";
 import knexModule from "knex";
 import path from "path";
 import { fileURLToPath } from "url";
-import { konfiguration } from "./config.js";
-import { logger, loggeAnfrage } from "./logger.js";
-import { erzeugeHelmetMiddleware } from "./sicherheit/helmet.js";
-import { corsMiddleware } from "./sicherheit/cors.js";
-import { produkteRouter } from "./routes/produkte.js";
-import { gesundheitRouter } from "./routes/gesundheit.js";
+import { config } from "./config.js";
+import { logger, requestLogger } from "./logger.js";
+import { createHelmetMiddleware } from "./security/helmet.js";
+import { corsMiddleware } from "./security/cors.js";
+import { productsRouter } from "./routes/products.js";
+import { healthRouter } from "./routes/health.js";
 import { adminRouter } from "./routes/admin.js";
-import { bestellungenRouter } from "./routes/bestellungen.js";
+import { ordersRouter } from "./routes/orders.js";
 import { errorHandler } from "./middleware/errorHandler.js";
-import { erzeugeProduktRepository } from "./db/queries/produkte.js";
-import { erzeugeBestellungRepository } from "./db/queries/bestellungen.js";
-import { initialisiereSocket } from "./socket/realtime.js";
+import { createProductRepository } from "./db/queries/products.js";
+import { createOrderRepository } from "./db/queries/orders.js";
+import { initializeSocket } from "./socket/realtime.js";
 
 const knex = knexModule({
   client: "pg",
-  connection: konfiguration.datenbankUrl,
+  connection: config.databaseUrl,
 });
 
-const produktRepository = erzeugeProduktRepository(knex);
-const bestellungRepository = erzeugeBestellungRepository(knex);
+const productRepository = createProductRepository(knex);
+const orderRepository = createOrderRepository(knex);
 
 const app = express();
 const server = http.createServer(app);
-const socketSchnittstelle = initialisiereSocket(server, {
-  erlaubteOrigin: konfiguration.corsOrigin,
+const socketInterface = initializeSocket(server, {
+  allowedOrigin: config.corsOrigin,
 });
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const frontendPfad = path.join(__dirname, "..", "..", "frontend");
+const frontendPath = path.join(__dirname, "..", "..", "frontend");
 
-app.use(erzeugeHelmetMiddleware({ erlaubteOrigin: konfiguration.corsOrigin }));
+app.use(createHelmetMiddleware({ allowedOrigin: config.corsOrigin }));
 app.use(corsMiddleware);
-app.use(loggeAnfrage);
+app.use(requestLogger);
 app.use(bodyParser.json());
-app.use(express.static(frontendPfad));
+app.use(express.static(frontendPath));
 
-app.use("/api/gesundheit", gesundheitRouter());
-app.use("/api/produkte", produkteRouter({ produktRepository }));
-app.use(
-  "/api/bestellungen",
-  bestellungenRouter({ produktRepository, bestellungRepository })
-);
-app.use(
-  "/api/admin",
-  adminRouter({ produktRepository, konfiguration })
-);
+app.use("/api/health", healthRouter());
+app.use("/api/products", productsRouter({ productRepository }));
+app.use("/api/orders", ordersRouter({ productRepository, orderRepository }));
+app.use("/api/admin", adminRouter({ productRepository, config }));
 
 app.use((req, res, next) => {
   if (req.method === "GET" && !req.path.startsWith("/api")) {
-    res.sendFile(path.join(frontendPfad, "index.html"));
+    res.sendFile(path.join(frontendPath, "index.html"));
     return;
   }
   next();
@@ -62,58 +56,58 @@ app.use((req, res, next) => {
 
 app.use(errorHandler);
 
-const port = konfiguration.port;
+const port = config.port;
 server.listen(port, () => {
-  logger.info(`Server läuft auf Port ${port}`);
+  logger.info(`Server listening on port ${port}`);
 });
 
-async function sendeAktualisierungen() {
-  const produkte = await produktRepository.findeAlleAktiven();
-  const bestellungen = await bestellungRepository.findeAlle();
-  socketSchnittstelle.sendeProdukteAktualisiert(produkte);
-  socketSchnittstelle.sendeBestellungenAktualisiert(bestellungen);
+async function sendUpdates() {
+  const products = await productRepository.findAllActive();
+  const orders = await orderRepository.findAll();
+  socketInterface.emitProductsUpdated(products);
+  socketInterface.emitOrdersUpdated(orders);
 }
 
-const originalSpeichereProdukt = produktRepository.speichereProdukt.bind(produktRepository);
-produktRepository.speichereProdukt = async (...args) => {
-  const ergebnis = await originalSpeichereProdukt(...args);
-  await sendeAktualisierungen();
-  return ergebnis;
+const originalSaveProduct = productRepository.saveProduct.bind(productRepository);
+productRepository.saveProduct = async (...args) => {
+  const result = await originalSaveProduct(...args);
+  await sendUpdates();
+  return result;
 };
 
-const originalLoescheProdukt = produktRepository.loescheProdukt.bind(produktRepository);
-produktRepository.loescheProdukt = async (...args) => {
-  await originalLoescheProdukt(...args);
-  await sendeAktualisierungen();
+const originalDeleteProduct = productRepository.deleteProduct.bind(productRepository);
+productRepository.deleteProduct = async (...args) => {
+  await originalDeleteProduct(...args);
+  await sendUpdates();
 };
 
-const originalSpeichereBestellung = bestellungRepository.speichereBestellung.bind(bestellungRepository);
-bestellungRepository.speichereBestellung = async (...args) => {
-  const ergebnis = await originalSpeichereBestellung(...args);
-  await sendeAktualisierungen();
-  return ergebnis;
+const originalSaveOrder = orderRepository.saveOrder.bind(orderRepository);
+orderRepository.saveOrder = async (...args) => {
+  const result = await originalSaveOrder(...args);
+  await sendUpdates();
+  return result;
 };
 
-const originalLoescheBestellung = bestellungRepository.loesche.bind(bestellungRepository);
-bestellungRepository.loesche = async (...args) => {
-  await originalLoescheBestellung(...args);
-  await sendeAktualisierungen();
+const originalRemoveOrder = orderRepository.remove.bind(orderRepository);
+orderRepository.remove = async (...args) => {
+  await originalRemoveOrder(...args);
+  await sendUpdates();
 };
-
 
 try {
-  await sendeAktualisierungen();
-} catch (fehler) {
-  logger.warn("Initiale Echtzeitaktualisierung fehlgeschlagen", { nachricht: fehler.message });
+  await sendUpdates();
+} catch (error) {
+  logger.warn("Initial realtime update failed", { message: error.message });
 }
+
 process.on("SIGINT", async () => {
-  logger.info("Beende Server (SIGINT)");
+  logger.info("Shutting down server (SIGINT)");
   await knex.destroy();
   process.exit(0);
 });
 
 process.on("SIGTERM", async () => {
-  logger.info("Beende Server (SIGTERM)");
+  logger.info("Shutting down server (SIGTERM)");
   await knex.destroy();
   process.exit(0);
 });

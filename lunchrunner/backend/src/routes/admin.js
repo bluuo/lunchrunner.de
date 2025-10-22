@@ -1,54 +1,54 @@
 import { Router } from "express";
 import { z } from "zod";
-import { pruefeAdminToken } from "../middleware/geraeteOwnership.js";
-import { schreibRateLimit } from "../sicherheit/rateLimit.js";
-import { validiereOptionenDefinition } from "../services/optionenValidierung.js";
+import { requireAdminToken } from "../middleware/deviceOwnership.js";
+import { writeRateLimit } from "../security/rateLimit.js";
+import { validateOptionsDefinition } from "../services/optionsValidation.js";
 
-const produktSchema = z.object({
+const productSchema = z.object({
   id: z.string().uuid().optional(),
-  produktName: z.string().min(1),
-  produktBeschreibung: z.string().optional(),
-  produktPreisBrutto: z.number().min(0),
-  produktKategorie: z.string().optional(),
-  produktAktiv: z.boolean().optional(),
-  optionenDefinition: z.any(),
+  productName: z.string().min(1),
+  productDescription: z.string().optional(),
+  productPriceGross: z.number().min(0),
+  productCategory: z.string().optional(),
+  productActive: z.boolean().optional(),
+  optionsDefinition: z.any(),
 });
 
-export function adminRouter({ produktRepository, konfiguration }) {
+export function adminRouter({ productRepository, config }) {
   const router = Router();
 
-  router.use(pruefeAdminToken(konfiguration));
+  router.use(requireAdminToken(config));
 
-  router.get("/produkte", async (req, res, next) => {
+  router.get("/products", async (req, res, next) => {
     try {
-      const produkte = await produktRepository.findeAlle();
-      res.json(produkte);
-    } catch (fehler) {
-      next(fehler);
+      const products = await productRepository.findAll();
+      res.json(products);
+    } catch (error) {
+      next(error);
     }
   });
 
-  router.post("/produkte", schreibRateLimit, async (req, res, next) => {
+  router.post("/products", writeRateLimit, async (req, res, next) => {
     try {
-      const payload = produktSchema.parse(req.body);
-      const definition = validiereOptionenDefinition(payload.optionenDefinition);
-      const gespeichertesProdukt = await produktRepository.speichereProdukt({
+      const payload = productSchema.parse(req.body);
+      const definition = validateOptionsDefinition(payload.optionsDefinition);
+      const savedProduct = await productRepository.saveProduct({
         ...payload,
-        optionenDefinition: definition,
-        waehrungCode: "EUR",
+        optionsDefinition: definition,
+        currencyCode: "EUR",
       });
-      res.status(201).json(gespeichertesProdukt);
-    } catch (fehler) {
-      next(fehler);
+      res.status(201).json(savedProduct);
+    } catch (error) {
+      next(error);
     }
   });
 
-  router.delete("/produkte/:id", schreibRateLimit, async (req, res, next) => {
+  router.delete("/products/:id", writeRateLimit, async (req, res, next) => {
     try {
-      await produktRepository.loescheProdukt(req.params.id);
+      await productRepository.deleteProduct(req.params.id);
       res.status(204).send();
-    } catch (fehler) {
-      next(fehler);
+    } catch (error) {
+      next(error);
     }
   });
 

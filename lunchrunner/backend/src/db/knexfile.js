@@ -1,8 +1,8 @@
-import { konfiguration } from "../../config.js";
+import { config } from "../../config.js";
 
 export default {
   client: "pg",
-  connection: konfiguration.datenbankUrl,
+  connection: config.databaseUrl,
   pool: {
     min: 2,
     max: 10,

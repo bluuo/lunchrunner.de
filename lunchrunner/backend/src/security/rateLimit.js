@@ -1,11 +1,11 @@
 import rateLimit from "express-rate-limit";
 
-export const schreibRateLimit = rateLimit({
+export const writeRateLimit = rateLimit({
   windowMs: 10 * 60 * 1000,
   max: 100,
   standardHeaders: true,
   legacyHeaders: false,
   message: {
-    nachricht: "Zu viele Anfragen. Bitte später erneut versuchen.",
+    message: "Too many requests. Please try again later.",
   },
 });

@@ -2,21 +2,21 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-function leseUmgebungsvariable(name, standardwert) {
-  const wert = process.env[name];
-  if (wert === undefined || wert === "") {
-    if (standardwert !== undefined) {
-      return standardwert;
+function readEnvironmentVariable(name, defaultValue) {
+  const value = process.env[name];
+  if (value === undefined || value === "") {
+    if (defaultValue !== undefined) {
+      return defaultValue;
     }
-    throw new Error(`Erforderliche Umgebungsvariable fehlt: ${name}`);
+    throw new Error(`Required environment variable is missing: ${name}`);
   }
-  return wert;
+  return value;
 }
 
-export const konfiguration = Object.freeze({
-  umgebung: leseUmgebungsvariable("NODE_ENV", "production"),
-  port: Number(leseUmgebungsvariable("PORT", "3000")),
-  datenbankUrl: leseUmgebungsvariable("DATABASE_URL"),
-  corsOrigin: leseUmgebungsvariable("CORS_ORIGIN", "https://lunchrunner.de"),
-  adminToken: leseUmgebungsvariable("ADMIN_TOKEN"),
+export const config = Object.freeze({
+  environment: readEnvironmentVariable("NODE_ENV", "production"),
+  port: Number(readEnvironmentVariable("PORT", "3000")),
+  databaseUrl: readEnvironmentVariable("DATABASE_URL"),
+  corsOrigin: readEnvironmentVariable("CORS_ORIGIN", "https://lunchrunner.de"),
+  adminToken: readEnvironmentVariable("ADMIN_TOKEN"),
 });

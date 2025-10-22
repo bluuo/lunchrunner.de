@@ -7,9 +7,9 @@ services:
     environment:
       POSTGRES_DB: lunchrunner
       POSTGRES_USER: lunchrunner
-      POSTGRES_PASSWORD: supergeheimespasswort
+      POSTGRES_PASSWORD: supersecretpassword
     volumes:
-      - db_daten:/var/lib/postgresql/data
+      - db_data:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U lunchrunner"]
       interval: 10s
@@ -22,9 +22,9 @@ services:
     environment:
       NODE_ENV: development
       PORT: 3000
-      DATABASE_URL: postgres://lunchrunner:supergeheimespasswort@db:5432/lunchrunner
+      DATABASE_URL: postgres://lunchrunner:supersecretpassword@db:5432/lunchrunner
       CORS_ORIGIN: http://localhost:3000
-      ADMIN_TOKEN: supergeheimes-token
+      ADMIN_TOKEN: supersecret-token
     ports:
       - "3000:3000"
     depends_on:
@@ -36,4 +36,4 @@ services:
     command: npm run dev
 
 volumes:
-  db_daten:
+  db_data:

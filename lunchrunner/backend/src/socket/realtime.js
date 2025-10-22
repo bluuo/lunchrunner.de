@@ -1,33 +1,33 @@
 import { Server } from "socket.io";
 import { logger } from "../logger.js";
 
-export function initialisiereSocket(server, { erlaubteOrigin }) {
+export function initializeSocket(server, { allowedOrigin }) {
   const io = new Server(server, {
     path: "/socket.io",
     cors: {
-      origin: erlaubteOrigin,
+      origin: allowedOrigin,
       methods: ["GET", "POST", "PUT", "DELETE"],
     },
   });
 
   io.of("/realtime").on("connection", (socket) => {
-    logger.info("Socket verbunden", { socketId: socket.id });
+    logger.info("Socket connected", { socketId: socket.id });
     socket.join("global");
     socket.on("disconnect", () => {
-      logger.info("Socket getrennt", { socketId: socket.id });
+      logger.info("Socket disconnected", { socketId: socket.id });
     });
   });
 
-  function sendeProdukteAktualisiert(daten) {
-    io.of("/realtime").to("global").emit("produkteAktualisiert", daten);
+  function emitProductsUpdated(data) {
+    io.of("/realtime").to("global").emit("productsUpdated", data);
   }
 
-  function sendeBestellungenAktualisiert(daten) {
-    io.of("/realtime").to("global").emit("bestellungenAktualisiert", daten);
+  function emitOrdersUpdated(data) {
+    io.of("/realtime").to("global").emit("ordersUpdated", data);
   }
 
   return {
-    sendeProdukteAktualisiert,
-    sendeBestellungenAktualisiert,
+    emitProductsUpdated,
+    emitOrdersUpdated,
   };
 }

@@ -1,25 +1,25 @@
-CREATE TABLE IF NOT EXISTS produkte (
+CREATE TABLE IF NOT EXISTS products (
   id UUID PRIMARY KEY,
-  produkt_name TEXT NOT NULL,
-  produkt_beschreibung TEXT,
-  produkt_preis_brutto NUMERIC(10, 2) NOT NULL,
-  waehrung_code VARCHAR(3) NOT NULL DEFAULT 'EUR',
-  produkt_kategorie TEXT,
-  produkt_aktiv BOOLEAN NOT NULL DEFAULT TRUE,
-  optionen_definition JSONB NOT NULL,
-  erstellt_am TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  aktualisiert_am TIMESTAMPTZ NOT NULL DEFAULT NOW()
+  product_name TEXT NOT NULL,
+  product_description TEXT,
+  product_price_gross NUMERIC(10, 2) NOT NULL,
+  currency_code VARCHAR(3) NOT NULL DEFAULT 'EUR',
+  product_category TEXT,
+  product_active BOOLEAN NOT NULL DEFAULT TRUE,
+  options_definition JSONB NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
-CREATE TABLE IF NOT EXISTS bestellungen (
+CREATE TABLE IF NOT EXISTS orders (
   id UUID PRIMARY KEY,
-  geraete_id UUID NOT NULL,
-  nutzer_name TEXT NOT NULL,
-  positionen JSONB[] NOT NULL,
-  gesamt_preis_brutto NUMERIC(10, 2) NOT NULL,
-  waehrung_code VARCHAR(3) NOT NULL DEFAULT 'EUR',
-  erstellt_am TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  aktualisiert_am TIMESTAMPTZ NOT NULL DEFAULT NOW()
+  device_id UUID NOT NULL,
+  customer_name TEXT NOT NULL,
+  items JSONB[] NOT NULL,
+  total_price_gross NUMERIC(10, 2) NOT NULL,
+  currency_code VARCHAR(3) NOT NULL DEFAULT 'EUR',
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
-CREATE INDEX IF NOT EXISTS idx_bestellungen_geraete_id ON bestellungen (geraete_id);
+CREATE INDEX IF NOT EXISTS idx_orders_device_id ON orders (device_id);

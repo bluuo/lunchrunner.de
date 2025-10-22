@@ -29,7 +29,7 @@ footer p {
   margin: 0;
 }
 
-header .untertitel,
+header .subtitle,
 footer a {
   color: rgba(255, 255, 255, 0.85);
 }
@@ -42,33 +42,33 @@ main {
   padding: 2rem 1.5rem 3rem;
 }
 
-.formular-bereich,
-.liste-bereich {
+.form-section,
+.list-section {
   background: white;
   border-radius: 16px;
   padding: 1.5rem;
   box-shadow: 0 18px 40px -24px rgba(35, 81, 255, 0.45);
 }
 
-.formular-bereich h2,
-.liste-bereich h2 {
+.form-section h2,
+.list-section h2 {
   margin-top: 0;
 }
 
-.form-gruppe {
+.form-group {
   display: flex;
   flex-direction: column;
   margin-bottom: 1rem;
 }
 
-.form-gruppe label {
+.form-group label {
   font-weight: 600;
   margin-bottom: 0.4rem;
 }
 
-.form-gruppe input,
-.form-gruppe select,
-.form-gruppe textarea {
+.form-group input,
+.form-group select,
+.form-group textarea {
   padding: 0.65rem 0.75rem;
   border-radius: 10px;
   border: 1px solid #cbd2d9;
@@ -76,16 +76,16 @@ main {
   transition: border-color 0.2s ease;
 }
 
-.form-gruppe input:focus,
-.form-gruppe select:focus,
-.form-gruppe textarea:focus {
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
   outline: none;
   border-color: #1c8dff;
   box-shadow: 0 0 0 3px rgba(28, 141, 255, 0.2);
 }
 
-.primaer,
-.sekundaer {
+.primary,
+.secondary {
   border: none;
   border-radius: 999px;
   padding: 0.75rem 1.5rem;
@@ -94,24 +94,24 @@ main {
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-.primaer {
+.primary {
   background: linear-gradient(135deg, #2351ff, #1c8dff);
   color: white;
   box-shadow: 0 16px 32px -20px rgba(35, 81, 255, 0.8);
 }
 
-.sekundaer {
+.secondary {
   background: rgba(28, 141, 255, 0.1);
   color: #1c8dff;
 }
 
-.primaer:hover,
-.sekundaer:hover {
+.primary:hover,
+.secondary:hover {
   transform: translateY(-1px);
   box-shadow: 0 20px 35px -24px rgba(28, 141, 255, 0.75);
 }
 
-.optionen-container {
+.options-container {
   display: grid;
   gap: 1rem;
   margin-bottom: 1rem;
@@ -121,24 +121,24 @@ main {
   background: #f8fafc;
 }
 
-.optionen-gruppe h3 {
+.options-group h3 {
   margin: 0 0 0.5rem;
   font-size: 1.05rem;
 }
 
-.optionen-werte label {
+.options-values label {
   display: flex;
   align-items: center;
   gap: 0.5rem;
   margin-bottom: 0.4rem;
 }
 
-.bestellungen-liste {
+.orders-list {
   display: grid;
   gap: 1rem;
 }
 
-.bestellung-karte {
+.order-card {
   border: 1px solid #e4e7eb;
   border-radius: 14px;
   padding: 1rem;
@@ -146,57 +146,57 @@ main {
   box-shadow: 0 18px 32px -28px rgba(15, 23, 42, 0.7);
 }
 
-.bestellung-kopf {
+.order-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 0.5rem;
 }
 
-.bestellung-positionen {
+.order-items {
   margin: 0;
   padding-left: 1.2rem;
 }
 
-.bestellung-positionen li {
+.order-items li {
   margin-bottom: 0.5rem;
 }
 
-.bestellung-aktionen {
+.order-actions {
   display: flex;
   gap: 0.5rem;
   margin-top: 0.75rem;
 }
 
-.produkte-liste {
+.products-list {
   display: grid;
   gap: 1rem;
 }
 
-.produkt-karte {
+.product-card {
   border: 1px solid #e4e7eb;
   border-radius: 14px;
   padding: 1rem;
   background: #fbfdff;
 }
 
-.produkt-karte header {
+.product-card header {
   background: none;
   color: inherit;
   padding: 0;
   margin-bottom: 0.5rem;
 }
 
-.produkt-karte header h3 {
+.product-card header h3 {
   margin: 0;
 }
 
-.formular-aktionen {
+.form-actions {
   display: flex;
   gap: 0.75rem;
 }
 
-.titel-mit-aktionen {
+.title-with-actions {
   display: flex;
   justify-content: space-between;
   align-items: center;
