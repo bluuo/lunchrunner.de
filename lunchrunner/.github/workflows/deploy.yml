@@ -1,0 +1,37 @@
+name: Deploy to Plesk
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install SSH key
+        uses: webfactory/ssh-agent@v0.7.0
+        with:
+          ssh-private-key: ${{ secrets.PLESK_SSH_KEY }}
+
+      - name: Deploy via SSH
+        env:
+          PLESK_HOST: ${{ secrets.PLESK_HOST }}
+          PLESK_USER: ${{ secrets.PLESK_USER }}
+          PLESK_APP_PATH: ${{ secrets.PLESK_APP_PATH }}
+        run: |
+          ssh -o StrictHostKeyChecking=no ${PLESK_USER}@${PLESK_HOST} <<'SCRIPT'
+          set -e
+          cd ${PLESK_APP_PATH}
+          if [ ! -d .git ]; then
+            git init
+            git remote add origin $GITHUB_SERVER_URL/${GITHUB_REPOSITORY}.git
+          fi
+          git fetch origin main
+          git reset --hard origin/main
+          bash plesk-post-deploy.sh
+          SCRIPT

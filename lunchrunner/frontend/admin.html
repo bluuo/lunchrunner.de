@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Lunchrunner Admin</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header>
+      <h1>Product management</h1>
+      <p class="subtitle">Maintain menu items and options in real time.</p>
+    </header>
+
+    <main>
+      <section class="form-section" id="authenticationSection">
+        <h2>Administrator login</h2>
+        <p id="authenticationFeedback" class="info-text">Loading authentication...</p>
+        <div id="signedOutActions" class="auth-panel">
+          <div id="clerkSignIn" class="clerk-container"></div>
+        </div>
+        <div id="signedInActions" class="auth-panel" hidden>
+          <p>
+            Signed in as <span id="adminUserName"></span>
+          </p>
+          <div id="clerkUserButton" class="clerk-container"></div>
+        </div>
+      </section>
+
+      <section class="list-section">
+        <div class="title-with-actions">
+          <h2>Products</h2>
+          <button id="newProductButton" class="secondary" disabled>New product</button>
+        </div>
+        <div id="productsList" class="products-list"></div>
+      </section>
+
+      <section class="form-section" id="productEditorSection" hidden>
+        <h2 id="productEditorTitle">Edit product</h2>
+        <form id="productForm">
+          <input type="hidden" id="productId" />
+          <div class="form-group">
+            <label for="productName">Product name</label>
+            <input type="text" id="productName" required />
+          </div>
+          <div class="form-group">
+            <label for="productDescription">Description</label>
+            <textarea id="productDescription" rows="3"></textarea>
+          </div>
+          <div class="form-group">
+            <label for="productPrice">Base price (gross)</label>
+            <input type="number" step="0.01" min="0" id="productPrice" required />
+          </div>
+          <div class="form-group">
+            <label for="productCategory">Category</label>
+            <input type="text" id="productCategory" />
+          </div>
+          <div class="form-group">
+            <label for="productActive">Active</label>
+            <select id="productActive">
+              <option value="true">Yes</option>
+              <option value="false">No</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="optionsDefinition">Options definition (JSON)</label>
+            <textarea id="optionsDefinition" rows="10" required></textarea>
+            <small>
+              See README for the structure. Please provide valid JSON.
+            </small>
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="primary">Save</button>
+            <button type="button" id="cancelButton" class="secondary">Cancel</button>
+          </div>
+        </form>
+      </section>
+    </main>
+
+    <footer>
+      <p>
+        Back to the <a href="index.html">order board</a>
+      </p>
+    </footer>
+
+    <script
+      src="https://cdn.socket.io/4.7.5/socket.io.min.js"
+      integrity="sha384-9vlh++/YCA7k+yvHhJPwPM8XcgTcF8KrlR2vgMOgc8ZJ28cN06ytgZPlmJxWOhqS"
+      crossorigin="anonymous"
+    ></script>
+    <script type="module" src="util.js"></script>
+    <script type="module" src="admin.js"></script>
+  </body>
+</html>

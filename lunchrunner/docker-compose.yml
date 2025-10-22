@@ -1,0 +1,48 @@
+version: "3.9"
+
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: lunchrunner
+      POSTGRES_USER: lunchrunner
+      POSTGRES_PASSWORD: supersecretpassword
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U lunchrunner"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    environment:
+      PORT: 3000
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/lunchrunner
+      SPRING_DATASOURCE_USERNAME: lunchrunner
+      SPRING_DATASOURCE_PASSWORD: supersecretpassword
+      LUNCHRUNNER_CORS_ORIGIN: http://localhost:3000
+      LUNCHRUNNER_CLERK_PUBLISHABLE_KEY: pk_test_your_publishable_key
+      LUNCHRUNNER_CLERK_SECRET_KEY: sk_test_your_secret_key
+      LUNCHRUNNER_CLERK_ISSUER_URL: https://your-app.clerk.accounts.dev
+      LUNCHRUNNER_CLERK_JWT_AUDIENCE: http://localhost:3000
+      LUNCHRUNNER_CLERK_JWT_TEMPLATE: backend
+      LUNCHRUNNER_CLERK_API_BASE_URL: https://api.clerk.com
+      LUNCHRUNNER_CLERK_ADMIN_ROLE: admin
+      LUNCHRUNNER_CLERK_SIGN_IN_URL: https://your-app.clerk.accounts.dev/sign-in
+      LUNCHRUNNER_CLERK_SIGN_UP_URL: https://your-app.clerk.accounts.dev/sign-up
+      LUNCHRUNNER_SOCKET_IO_PORT: 3300
+    ports:
+      - "3000:3000"
+      - "3300:3300"
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  db_data:

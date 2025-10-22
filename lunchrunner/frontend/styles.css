@@ -1,0 +1,257 @@
+:root {
+  color-scheme: light;
+  font-family: "Inter", "Segoe UI", sans-serif;
+  background-color: #f4f6fb;
+  color: #1f2933;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+header,
+footer {
+  background: linear-gradient(135deg, #2351ff, #1c8dff);
+  color: white;
+  padding: 2rem 1.5rem;
+  text-align: center;
+}
+
+header h1,
+footer p {
+  margin: 0;
+}
+
+header .subtitle,
+footer a {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+main {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 1.5rem;
+  padding: 2rem 1.5rem 3rem;
+}
+
+.form-section,
+.list-section {
+  background: white;
+  border-radius: 16px;
+  padding: 1.5rem;
+  box-shadow: 0 18px 40px -24px rgba(35, 81, 255, 0.45);
+}
+
+.form-section h2,
+.list-section h2 {
+  margin-top: 0;
+}
+
+.info-text {
+  margin: 0 0 1rem;
+  padding: 0.75rem 1rem;
+  border-radius: 12px;
+  background: #eef2ff;
+  color: #1f2933;
+  border: 1px solid rgba(35, 81, 255, 0.15);
+}
+
+.info-text[data-state="success"] {
+  background: #ecfdf3;
+  color: #047857;
+  border-color: rgba(4, 120, 87, 0.25);
+}
+
+.info-text[data-state="warning"] {
+  background: #fff7ed;
+  color: #c2410c;
+  border-color: rgba(194, 65, 12, 0.25);
+}
+
+.info-text[data-state="error"] {
+  background: #fef2f2;
+  color: #b91c1c;
+  border-color: rgba(185, 28, 28, 0.25);
+}
+
+.auth-panel {
+  border: 1px dashed rgba(35, 81, 255, 0.3);
+  border-radius: 12px;
+  padding: 1rem;
+  background: #f8faff;
+}
+
+.auth-panel + .auth-panel {
+  margin-top: 1rem;
+}
+
+.clerk-container {
+  display: flex;
+  justify-content: center;
+}
+
+.muted {
+  color: #6b7280;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 1rem;
+}
+
+.form-group label {
+  font-weight: 600;
+  margin-bottom: 0.4rem;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+  padding: 0.65rem 0.75rem;
+  border-radius: 10px;
+  border: 1px solid #cbd2d9;
+  font-size: 1rem;
+  transition: border-color 0.2s ease;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: #1c8dff;
+  box-shadow: 0 0 0 3px rgba(28, 141, 255, 0.2);
+}
+
+.primary,
+.secondary {
+  border: none;
+  border-radius: 999px;
+  padding: 0.75rem 1.5rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.primary {
+  background: linear-gradient(135deg, #2351ff, #1c8dff);
+  color: white;
+  box-shadow: 0 16px 32px -20px rgba(35, 81, 255, 0.8);
+}
+
+.secondary {
+  background: rgba(28, 141, 255, 0.1);
+  color: #1c8dff;
+}
+
+.primary:hover,
+.secondary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 20px 35px -24px rgba(28, 141, 255, 0.75);
+}
+
+.options-container {
+  display: grid;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  padding: 1rem;
+  border: 1px dashed #cbd2d9;
+  border-radius: 14px;
+  background: #f8fafc;
+}
+
+.options-group h3 {
+  margin: 0 0 0.5rem;
+  font-size: 1.05rem;
+}
+
+.options-values label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.4rem;
+}
+
+.orders-list {
+  display: grid;
+  gap: 1rem;
+}
+
+.order-card {
+  border: 1px solid #e4e7eb;
+  border-radius: 14px;
+  padding: 1rem;
+  background: #fbfdff;
+  box-shadow: 0 18px 32px -28px rgba(15, 23, 42, 0.7);
+}
+
+.order-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.order-items {
+  margin: 0;
+  padding-left: 1.2rem;
+}
+
+.order-items li {
+  margin-bottom: 0.5rem;
+}
+
+.order-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.products-list {
+  display: grid;
+  gap: 1rem;
+}
+
+.product-card {
+  border: 1px solid #e4e7eb;
+  border-radius: 14px;
+  padding: 1rem;
+  background: #fbfdff;
+}
+
+.product-card header {
+  background: none;
+  color: inherit;
+  padding: 0;
+  margin-bottom: 0.5rem;
+}
+
+.product-card header h3 {
+  margin: 0;
+}
+
+.form-actions {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.title-with-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+@media (max-width: 768px) {
+  main {
+    grid-template-columns: 1fr;
+  }
+}
